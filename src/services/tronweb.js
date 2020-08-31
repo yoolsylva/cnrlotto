@@ -9,7 +9,7 @@ class TronWebService {
   eventTransactions = undefined;
 
   // Shasta
-  CNRLottoAddress = ""
+  CNRLottoAddress = "TLZqryddttchvxHeqMfxZzNSFbpHuB3AGA"
   CNRTokenAddress = "TRjvDMXxzmmEpULikwK5uXCswJWMVPjD8J"
 
   static getInstance() {
@@ -32,17 +32,12 @@ class TronWebService {
         this.CNRTokenContract = await window.tronWeb.contract().at(this.CNRTokenAddress);
 
         store.commit('SET_ADDRESS', window.tronWeb.defaultAddress.base58);
-        store.commit('READY', true);
+        store.commit('SET_READY', true);
 
         this.ready = true;
         clearInterval(this.tick);
       }
     })
-  }
-
-  getAccountAddr() {
-    if (!this.tronwebReady) return "";
-    return window.tronWeb.defaultAddress.base58;
   }
 }
 

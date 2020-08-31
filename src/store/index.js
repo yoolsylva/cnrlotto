@@ -12,8 +12,8 @@ export default new Vuex.Store({
     SET_ADDRESS(state, _accountAddress) {
       state.accountAddress = _accountAddress;
     },
-    READY(state, _ready) {
-      state.read = _ready;
+    SET_READY(state, _ready) {
+      state.ready = _ready;
     },
   },
   actions: {

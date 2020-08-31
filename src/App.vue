@@ -3,12 +3,9 @@
     <div v-if="!ready">loading...</div>
     <div v-if="ready">
       <h1>Wallet: {{accountAddress}}</h1>
-      <div id="nav">
-        <router-link to="/">Home</router-link>|
-        <router-link to="/about">About</router-link>
-      </div>
-      <router-view />
     </div>
+    <button v-on:click="(e)=>play(e)">Add number</button>
+    {{getValue}}
   </div>
 </template>
 
@@ -19,7 +16,8 @@ export default {
   name: "Home",
   components: {},
   data() {
-    return {};
+    return {
+    };
   },
   computed: {
     accountAddress() {
@@ -32,9 +30,24 @@ export default {
   async created() {
     const tronweb = TronWebService.getInstance();
     tronweb.init();
+
   },
   destroyed() {},
-  methods: {},
+  methods: {
+    async play(event) {
+      console.log('event in play(): ', event)
+      const tronweb = TronWebService.getInstance();
+       tronweb.CNRLottoContract.add(10).send({
+         shouldPollResponse:true
+       }).then(res=>{
+         console.log('res of play: ', res)
+       });
+    },
+    getValue() {
+      const tronweb = TronWebService.getInstance();
+      return tronweb.CNRLottoContract.getValue();
+    }
+  },
 };
 </script>
 
