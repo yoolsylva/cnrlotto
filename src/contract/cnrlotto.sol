@@ -34,8 +34,8 @@ contract CNRLotto {
     
     address payable []  players;
     
-    event Create(address creator, uint256 createTime,uint256 bet);
-    event Play(address player, uint256 playTime, uint256 totalPlayer, uint256 bet);
+    event Create(address creator, uint256 createTime, uint256 endTime, uint256 bet);
+    event Play(address player, uint256 playTime, uint256 totalPlayer, uint256 bet, uint256 totalPlayed, uint256 currentReward);
     event Win(address creator,address winner, uint256 amount,uint gameNumber);
     
     function play(address ref) external {
@@ -51,23 +51,7 @@ contract CNRLotto {
         
         int32 ret = getTimeLeft();
         require (ret !=0,"need to reveal winner first");
-        
         require((now<endTime)||(endTime == 0),"game not start");
-        
-        mystats[msg.sender].myTotalPlayed += vars.gameBet;
-        mystats[msg.sender].myPlays +=1;
-        
-        if (players.length==0){
-            createTime = now;
-            endTime = createTime + vars.gameTimerSeconds;
-            vars.totalGames++;
-            emit Create(msg.sender,createTime,vars.gameBet);
-        } 
-        
-        players.push(msg.sender);
-        emit Play(msg.sender,now,players.length,vars.gameBet);
-        
-        vars.totalPlayed += vars.gameBet;
         
         if (ref != msg.sender) {
             uint256 comRef = vars.comRef * vars.gameBet / 10000;
@@ -84,6 +68,21 @@ contract CNRLotto {
             if (_comROI>0) token.transfer(ROI, _comROI);
             vars.totalFeedROI += _comROI;
         }
+        
+        mystats[msg.sender].myTotalPlayed += vars.gameBet;
+        mystats[msg.sender].myPlays +=1;
+        
+        if (players.length==0){
+            createTime = now;
+            endTime = createTime + vars.gameTimerSeconds;
+            vars.totalGames++;
+            emit Create(msg.sender,createTime,endTime,vars.gameBet);
+        } 
+        
+        vars.totalPlayed += vars.gameBet;
+        
+        players.push(msg.sender);
+        emit Play(msg.sender,now,players.length,vars.gameBet,vars.totalPlayed,token.balanceOf(address(this)));
     }
     
     function getTimeLeft() public view returns(int32){
@@ -138,7 +137,7 @@ contract CNRLotto {
         vars.comRef = 500;                                  //Ref Com
         vars.comROI = 1000;                                 //ROI Com
                                         
-        vars.gameTimerSeconds = 12*60*60;                 //12h timer 
+        vars.gameTimerSeconds = 5*60;                 //5 minutes timer 
         vars.totalWin=0;
         vars.totalPlayed=0;
         vars.totalFeedROI=0;
@@ -185,10 +184,6 @@ contract CNRLotto {
     
     function getPlayers() public view returns(address payable[] memory) {
         return players;
-    }
-    
-    function getPot() public view returns(uint256) {
-        return vars.pot;
     }
     
     function getPlayersLength() public view returns(uint256) {

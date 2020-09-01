@@ -1,15 +1,17 @@
 import store from '../store';
+import TronGrid from 'trongrid';
 
 class TronWebService {
   instance = undefined;
   ready = false;
+  tronGrid = undefined;
   CNRLottoContract = undefined;
   CNRTokenContract = undefined;
 
   eventTransactions = undefined;
 
   // Shasta
-  CNRLottoAddress = "TCFWhTihSyygx6MDqEREJVUMsR5HzgzGuc"
+  CNRLottoAddress = "TNbKeJ5XXa6sZB2mEk1PEaVRQ6e7cimBnP"
   CNRTokenAddress = "TRjvDMXxzmmEpULikwK5uXCswJWMVPjD8J"
 
   static getInstance() {
@@ -23,20 +25,26 @@ class TronWebService {
     this.eventTransactions = new Set();
   }
 
-  init() {
-    if (this.ready) return;
+  async init() {
+    return new Promise((resolve) => {
+      if (this.ready) return resolve();
 
-    this.tick = setInterval(async () => {
-      if ((!!window.tronWeb) && (window.tronWeb.ready)) {
-        this.CNRLottoContract = await window.tronWeb.contract().at(this.CNRLottoAddress);
-        this.CNRTokenContract = await window.tronWeb.contract().at(this.CNRTokenAddress);
+      this.tick = setInterval(async () => {
+        if ((!!window.tronWeb) && (window.tronWeb.ready)) {
+          this.tronGrid = new TronGrid(window.tronWeb);
 
-        store.commit('SET_ADDRESS', window.tronWeb.defaultAddress.base58);
-        store.commit('SET_READY', true);
+          this.CNRLottoContract = await window.tronWeb.contract().at(this.CNRLottoAddress);
+          this.CNRTokenContract = await window.tronWeb.contract().at(this.CNRTokenAddress);
 
-        this.ready = true;
-        clearInterval(this.tick);
-      }
+          store.commit('SET_ADDRESS', window.tronWeb.defaultAddress.base58);
+          store.commit('SET_READY', true);
+
+          
+          this.ready = true;
+          clearInterval(this.tick);
+          resolve();
+        }
+      })
     })
   }
 }
