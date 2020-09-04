@@ -23,6 +23,7 @@ contract CNRLotto {
     }
     uint256 createTime;
     uint256 endTime;
+    uint32 lastGameNumber;
     
     Variables public vars;
     struct MyStats{
@@ -31,9 +32,19 @@ contract CNRLotto {
         uint256 myTotalWin;
     }
     mapping (address => MyStats) mystats;
-    
-    address payable []  players;
-    
+
+    struct Player {
+        uint256 numberTicket;
+        uint256 lastBuyTime;
+    }
+
+    struct Game {
+        mapping(address => Player) players;
+    }
+
+    mapping(uint32 => Game) games;
+    address payable [] players;
+
     event Create(address creator, uint256 createTime, uint256 endTime, uint256 bet);
     event Play(address player, uint256 playTime, uint256 totalPlayer, uint256 bet, uint256 totalPlayed, uint256 currentReward);
     event Win(address creator,address winner, uint256 amount,uint gameNumber);
@@ -81,7 +92,10 @@ contract CNRLotto {
         
         vars.totalPlayed += vars.gameBet;
         
+        games[vars.totalGames].players[msg.sender].numberTicket += vars.gameBet;
+        games[vars.totalGames].players[msg.sender].lastBuyTime = now;
         players.push(msg.sender);
+
         emit Play(msg.sender,now,players.length,vars.gameBet,vars.totalPlayed,token.balanceOf(address(this)));
     }
     
