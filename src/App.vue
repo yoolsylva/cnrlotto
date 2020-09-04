@@ -1,48 +1,121 @@
 <template>
   <div id="app">
-    <div v-if="!ready">loading...</div>
-    <div v-if="ready">
-      <h1>Wallet: {{accountAddress}}</h1>
-    </div>
+    <!--[if lte IE 9]>
+              <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+    <![endif]-->
 
-    <div>
-      <h3>Create Time: {{createTime}}</h3>
-    </div>
 
-    <div>
-      <h3>End Time: {{endTime}}</h3>
-    </div>
-
-    <div>
-      <h3>Current Jackpot: {{currentReward}} CNR</h3>
-    </div>
-
-    <div>
-      <h3>Current Players:</h3>
-      <ul>
-        <li v-for="(player,index) in players" :key="index">{{ player }}</li>
-      </ul>
-    </div>
-
-    <div>
-      <h3>Total Paid out: {{totalWin}} CNR</h3>
-    </div>
-
-    <div>
-      <h3>Tickets Sold</h3>
-      <h3>Sold Today: {{this.totalPlayer24hour}}</h3>
-      <h3>Total Sold: {{this.totalPlayed}}</h3>
-    </div>
-
-    <div>
-      <h3>Past Winners:</h3>
-      <ul>
-        <li v-for="(winner,index) in pastWinners" :key="index">{{ winner }}</li>
-      </ul>
-    </div>
-
-    <button v-on:click="play">Play</button>
-    <button v-on:click="gameCheck">Game Check</button>
+    <!-- Header Start -->
+    <header class="header-area">
+      <div class="header-logo">
+        <a href>
+          <img src="img/logo.png" alt />
+        </a>
+      </div>
+    </header>
+    <!-- Header End -->
+    <!-- Game Body Area Start -->
+    <section class="game-body-wrapper">
+      <div class="game-wrapper-single wrapper-stack-1">
+        <div class="game-body-static game-body-1">
+          <div class="game-statistics-box game-statistics-bo-1">
+            <h2 class="section-title">Total Paid Out</h2>
+            <h1>{{totalWin}} CNR</h1>
+          </div>
+        </div>
+        <div class="game-body-static game-body-2">
+          <div class="game-statistics-box game-statistics-bo-1">
+            <h2 class="section-title">Tickets Sold</h2>
+            <h4>Sold today: {{this.totalPlayer24hour}}</h4>
+            <h4>Total sold: {{this.totalPlayed}}</h4>
+          </div>
+        </div>
+        <div class="game-body-static game-body-3">
+          <div class="game-statistics-box game-statistics-bo-1">
+            <h2 class="section-title">Past Winners</h2>
+            <ul>
+              <li v-for="(winner,index) in pastWinners" :key="index">{{ winner }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="game-wrapper-single wrapper-stack-2">
+        <h1 class="current-jackpot">Current Jackpot</h1>
+        <div class="lottery-amount">
+          <h1>{{currentReward}} CNR</h1>
+        </div>
+        <div class="lottery-trigger">
+          <h3>Jackpot Triggers In</h3>
+          <h1>{{this.countdown}}</h1>
+        </div>
+        <!-- <h1 class="attention-text">1 Entry Per Wallet Daily</h1> -->
+        <div class="lottery-pay-trx-button">
+          <h3>Cost to play: 1 Centric Rise (CNR) per entry</h3>
+          <div class="lottery-button-top">
+            <h4>
+              Your Wallet :
+              <span>{{accountAddress}}</span>
+            </h4>
+            <h4>
+              Your Wallet Balance:
+              <span>{{this.yourBalance}} CNR</span>
+            </h4>
+            <h4 class="yellow-text">How many tickets do you want to buy?</h4>
+          </div>
+          <div class="lottery-tickets-button">
+            <a href="#" v-on:click="play(1)">1</a>
+            <a href="#" v-on:click="play(5)">5</a>
+            <a href="#" v-on:click="play(10)">10</a>
+            <a href="#" v-on:click="play(25)">25</a>
+            <a href="#" v-on:click="play(50)">50</a>
+            <a href="#" v-on:click="play(100)">100</a>
+            <a href="#" v-on:click="play(1000)">1000</a>
+          </div>
+          <h4>You've entered the jackpot.</h4>
+        </div>
+      </div>
+      <div class="game-wrapper-single wrapper-stack-3">
+        <div class="current-players-box">
+          <h1>Current Players</h1>
+          <div class="player-stastics">
+            <table class="player-table">
+              <thead>
+                <tr>
+                  <th>Game#</th>
+                  <th>Wallet#</th>
+                  <th>Date/Time</th>
+                  <th>#tickets</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>21</td>
+                  <td>Tt24..Bbrj</td>
+                  <td>08-09-20 00:14:32</td>
+                  <td>1000</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="footer-area">
+      <div class="social-tab">
+        <ul>
+          <li>
+            <a href>Telegram</a>
+          </li>
+          <li>
+            <a href>Discord</a>
+          </li>
+          <li>
+            <a href>Twitter</a>
+          </li>
+        </ul>
+      </div>
+    </footer>
+    <!-- Game Body Area End -->
   </div>
 </template>
 
@@ -63,6 +136,8 @@ export default {
       pastWinners: [],
       totalPlayed: -1,
       totalPlayer24hour: -1,
+      yourBalance: -1,
+      countdown: -1,
     };
   },
   computed: {
@@ -87,9 +162,21 @@ export default {
       "DD/MM/YYYY hh:mm:ss"
     );
 
+    if (parseInt(endTime) > 0) {
+      this.tick = setInterval(() => {
+        this.countdown = dayjs(
+          parseInt(parseInt(endTime) - Date.now() / 1000) * 1000
+        ).format("DD/MM/YYYY hh:mm:ss");
+      }, 1000);
+    }
+
     const balance = await tronweb.CNRTokenContract.balanceOf(
       tronweb.CNRLottoAddress
     ).call();
+    const walletBalance = await tronweb.CNRTokenContract.balanceOf(
+      this.accountAddress
+    ).call();
+    this.yourBalance = parseInt(walletBalance.balance) / 10 ** 8;
     this.currentReward = parseInt(balance.balance) / 10 ** 8;
     const vars = await tronweb.CNRLottoContract.vars().call();
     this.totalWin = parseInt(vars.totalWin) / 10 ** 8;
@@ -112,6 +199,13 @@ export default {
       this.endTime = dayjs(parseInt(endTime) * 1000).format(
         "DD/MM/YYYY hh:mm:ss"
       );
+
+      if (this.tick) clearInterval(this.tick);
+      this.tick = setInterval(() => {
+        this.countdown = dayjs(
+          parseInt(parseInt(endTime) - Date.now() / 1000) * 1000
+        ).format("DD/MM/YYYY hh:mm:ss");
+      }, 1000);
     });
 
     tronweb.CNRLottoContract.Play().watch((err, event) => {
@@ -125,6 +219,7 @@ export default {
       console.log(event);
       const { player, currentReward } = event.result;
       this.players = [...this.players, player];
+      console.log("player array : ", this.players);
       this.currentReward = currentReward / 10 ** 8;
     });
 
@@ -164,9 +259,11 @@ export default {
     console.log("pastEventPlays", pastEventPlays);
     this.totalPlayer24hour = pastEventPlays.data.length;
   },
-  destroyed() {},
+  destroyed() {
+    clearInterval(this.tick);
+  },
   methods: {
-    async play() {
+    async play(numberTickets) {
       const tronweb = TronWebService.getInstance();
       const allowance = await tronweb.CNRTokenContract.allowance(
         this.accountAddress,
@@ -186,7 +283,8 @@ export default {
       }
 
       const txid = await tronweb.CNRLottoContract.play(
-        this.accountAddress
+        this.accountAddress,
+        numberTickets
       ).send({
         shouldPollResponse: false,
       });
