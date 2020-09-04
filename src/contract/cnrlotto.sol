@@ -195,6 +195,13 @@ contract CNRLotto {
     function getTotalGames() public view returns(uint256) {
         return vars.totalGames;
     }
+
+    function getPlayerStat(uint32 gameNumber, address player) public view returns (uint256 numberTicket, uint256 lastBuyTime) {
+        return (
+            games[gameNumber].players[player].numberTicket,
+            games[gameNumber].players[player].lastBuyTime
+        );
+    }
     
     function getPlayers() public view returns(address payable[] memory) {
         return players;
