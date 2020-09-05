@@ -19,3 +19,19 @@ export function bytes32ToIPFSHash(hash_hex) {
 export function shortenAddress(address) {
   return address.substr(0, 5) + "..." + address.substr(address.length - 5, address.length)
 }
+
+export function secondsToDhms(seconds) {
+  seconds = Number(seconds);
+  if(seconds <= 0) return 0;
+  
+  var d = Math.floor(seconds / (3600 * 24));
+  var h = Math.floor((seconds % (3600 * 24)) / 3600);
+  var m = Math.floor((seconds % 3600) / 60);
+  var s = Math.floor(seconds % 60);
+
+  var dDisplay = d > 0 ? d + "D : " : "";
+  var hDisplay = h > 0 ? h + "H : " : "";
+  var mDisplay = m > 0 ? m + "M : " : "";
+  var sDisplay = s > 0 ? s + "S" : "";
+  return dDisplay + hDisplay + mDisplay + sDisplay;
+}

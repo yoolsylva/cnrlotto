@@ -49,53 +49,50 @@ contract CNRLotto {
     event Play(address player, uint256 playTime, uint256 totalPlayer, uint256 bet, uint256 totalPlayed, uint256 currentReward);
     event Win(address creator,address winner, uint256 amount,uint gameNumber);
     
-    function play(address ref) external {
+    function play(uint256 numberTicket, address ref) external {
         require(msg.sender == tx.origin, 'Caller must not be Contract Address');
         require(ref != address(0),"error no ref");
-        
-        //Check if the contract is allowed to send token on user behalf
-        uint256 allowance = token.allowance(msg.sender,address(this));
-        require (allowance>=vars.gameBet,'allowance error');
-        
-        bool sent = token.transferFrom(msg.sender,address(this),vars.gameBet);
-        if(!sent) revert();
+        require(numberTicket > 0, "buy at least 1 ticket");
+        require(token.transferFrom(msg.sender,address(this),vars.gameBet*numberTicket), "transfer error");
         
         int32 ret = getTimeLeft();
         require (ret !=0,"need to reveal winner first");
         require((now<endTime)||(endTime == 0),"game not start");
         
         if (ref != msg.sender) {
-            uint256 comRef = vars.comRef * vars.gameBet / 10000;
+            uint256 comRef = vars.comRef * vars.gameBet * numberTicket / 10000;
             if (comRef>0) token.transfer(ref, comRef);
         }
         
-        uint256 comHouse = vars.comHouse * vars.gameBet / 10000;
+        uint256 comHouse = vars.comHouse * vars.gameBet * numberTicket / 10000;
         if (comHouse>0) token.transfer(_owner, comHouse);
         
         if (ROI != address(0)){
-            uint256 _comROI = vars.comROI *vars.gameBet / 10000;
-            if(ref == msg.sender) _comROI += vars.comRef * vars.gameBet / 10000; // if no ref -> transfer to roi
+            uint256 _comROI = vars.comROI *vars.gameBet * numberTicket / 10000;
+            if(ref == msg.sender) _comROI += vars.comRef * vars.gameBet * numberTicket / 10000; // if no ref -> transfer to roi
             
             if (_comROI>0) token.transfer(ROI, _comROI);
             vars.totalFeedROI += _comROI;
         }
         
-        mystats[msg.sender].myTotalPlayed += vars.gameBet;
+        mystats[msg.sender].myTotalPlayed += vars.gameBet*numberTicket;
         mystats[msg.sender].myPlays +=1;
         
         if (players.length==0){
             createTime = now;
             endTime = createTime + vars.gameTimerSeconds;
             vars.totalGames++;
-            emit Create(msg.sender,createTime,endTime,vars.gameBet);
+            emit Create(msg.sender,createTime,endTime,vars.gameBet*numberTicket);
         } 
         
-        vars.totalPlayed += vars.gameBet;
+        vars.totalPlayed += vars.gameBet*numberTicket;
         
-        games[vars.totalGames].players[msg.sender].numberTicket += vars.gameBet;
+        games[vars.totalGames].players[msg.sender].numberTicket += numberTicket;
         games[vars.totalGames].players[msg.sender].lastBuyTime = now;
-        players.push(msg.sender);
-
+        for(uint i=0;i<numberTicket; ++i){
+            players.push(msg.sender);
+        }
+       
         emit Play(msg.sender,now,players.length,vars.gameBet,vars.totalPlayed,token.balanceOf(address(this)));
     }
     

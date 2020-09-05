@@ -1,0 +1,546 @@
+
+/* 1. Theme default css */
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Poppins:300,400,500,600,700');
+ body {
+	font-family: 'Open Sans', sans-serif;
+	font-weight: normal;
+	font-style: normal;
+	background-image: url(../img/background.jpg);
+	background-size: cover;
+	background-position: center;
+}
+.img {
+	max-width: 100%;
+	transition: all 0.3s ease-out 0s;
+}
+
+a:focus,
+.button:focus {
+	text-decoration: none;
+	outline: none;
+}
+a:focus,
+a:hover {
+	text-decoration: none;
+}
+a,
+button {
+	outline: medium none;
+}
+button:focus,input:focus,input:focus,textarea,textarea:focus{outline: 0}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: 'Poppins', sans-serif;
+	font-weight: normal;
+	color: #ffffff;
+	margin-top: 0px;
+	font-style: normal;
+	font-weight: 700;
+	text-transform: normal;
+	margin-bottom: 15px;
+}
+
+ul {
+	margin: 0px;
+	padding: 0px;
+}
+li {
+	list-style: none
+}
+p {
+	font-size: 16px;
+	font-weight: normal;
+	line-height: 24px;
+	color: #ffffff;
+	margin-bottom: 15px;
+}
+
+
+@keyframes animate {
+    0%{
+        background-position: 0 0;
+    }
+    50%{
+        background-position: 300% 0;
+    }
+    100%{
+        background-position: 0 0;
+    }
+}
+
+.header-logo a {
+    display: inline-block;
+}
+
+.header-logo a img {
+    width: 65%;
+    padding: 30px 0;
+}
+
+.header-logo {
+    text-align: center;
+}
+
+.game-body-wrapper {
+    display: grid;
+    grid-template-columns: 2fr 3fr 2fr;
+    grid-gap: 30px;
+    background: #fff url(../img/background.jpg);
+    padding: 40px;
+    border-radius: 10px;
+    position: relative;
+}
+
+.game-body-wrapper:before, .game-body-wrapper:after {
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    content: "";
+    background: linear-gradient(45deg, #fb0094, #0000ff, #ffff00, #ff0000, #fb0094, #0000F1, #ffff00, #ff0000);
+    background-size: 400%;
+    z-index: -1;
+    animation: animate 20s linear infinite;
+    border-radius: 10px;
+}
+
+.game-body-wrapper:after {
+    filter: blur(15px);
+}
+
+.game-body-static {
+	position: relative;
+    background: #fff url(../img/background.jpg);
+    background-position: center;
+    text-align: center;
+    padding: 15px 40px 40px 40px;
+    margin-bottom: 40px;
+    border-radius: 10px;
+    border: 4px solid #CB2FC9;
+}
+
+.game-body-static:before {
+	position: absolute;
+    left: -2px;
+    top: -2px;
+    right: -2px;
+    bottom: -2px;
+    content: "";
+    background: #CB2FC9;
+    z-index: -1;
+    filter: blur(10px);
+}
+
+
+.game-body-static:after {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-image: url(../img/background.jpg);
+    z-index: -1;
+}
+
+.lottery-amount {
+    border: 8px solid #3ef0a3;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.lottery-amount h1 {
+    font-size: 85px;
+    margin: 0;
+    color: #3ef0a3;
+}
+
+.lottery-trigger {
+    text-align: center;
+}
+
+.lottery-trigger h3 {
+    text-transform: uppercase;
+    letter-spacing: 7px;
+    font-size: 24px;
+}
+
+.lottery-trigger h1 {
+    font-size: 60px;
+    letter-spacing: 3px;
+}
+
+.attention-text {
+    color: #ffea00;
+    font-size: 27px;
+    text-align: center;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+	margin-bottom: 30px;
+}
+
+.lottery-pay-trx-button {
+    text-align: center;
+}
+
+.player-table thead tr th {
+    color: #fff;
+}
+
+.player-table {
+    width: 100%;
+}
+
+.player-table tbody tr td {color: #bce02a;}
+
+.lottery-tickets-button {
+    /* display: grid;
+    grid-template-columns: repeat(3, 3fr);
+    grid-gap: 1em; */
+}
+
+.lottery-tickets-button a {
+    color: #fff;
+    background: #bce02a;
+    text-decoration: none;
+    font-weight: 700;
+    background-position: center;
+    margin: 0 5px 10px 5px;
+    border: 4px solid #bce02a;
+    border-radius: 5px;
+    padding: 10px 13px;
+    display: inline-block;
+    background-size: 100%;
+    font-size: 18px;
+    transition: .3s;
+    -webkit-transition: .3s;
+    -moz-transition: .3s;
+    -ms-transition: .3s;
+    -o-transition: .3s;
+}
+
+.lottery-tickets-button a:hover {
+    background: #ffffff;
+    color: #bce02a;
+    border-color: #fff;
+}
+
+.current-jackpot {
+    text-align: center;
+    font-size: 40px;
+}
+
+.lottery-amount .section-title {
+    margin: 0;
+}
+
+/* .lottery-pay-trx-button a {
+    display: block;
+    color: #fff;
+    text-decoration: none;
+    font-size: 65px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 4px;
+    background: url(../img/background.jpg);
+    background-position: center;
+    margin-bottom: 20px;
+    border: 4px solid #bce02a;
+    border-radius: 5px;
+    position: relative;
+    padding: 15px 20px;
+	transition: .2s ease-out .1s;
+    background-size: 100%;
+} */
+
+/* .lottery-pay-trx-button a:before {
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    right: -2px;
+    bottom: -2px;
+    content: "";
+    background: #bce02a;
+    z-index: -1;
+    filter: blur(20px);
+} */
+
+.lottery-pay-trx-button h4 {
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-top: 20px;
+}
+
+.lottery-button-top, .lottery-pay-trx-button h4 {
+    letter-spacing: inherit;
+    text-transform: capitalize;
+    font-weight: 500;
+}
+
+.lottery-button-top h4 span, .yellow-text {
+    color: #bce02a;
+}
+
+.lottery-pay-trx-button h3 {
+    font-weight: 500;
+}
+
+.current-players-box {
+    position: relative;
+    background: url(../img/background.jpg);
+    background-position: center;
+    text-align: center;
+    padding: 15px 30px 40px 30px;
+    margin-bottom: 40px;
+    border-radius: 10px;
+    border: 4px solid #2fbbfe;
+    height: 350px;
+}
+
+.current-players-box h1 {
+    font-size: 35px;
+}
+
+.current-players-box:before {
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    right: -2px;
+    bottom: -2px;
+    content: "";
+    background: #2fbbfe;
+    z-index: -1;
+    filter: blur(10px);
+}
+
+.game-statistics-box h4 {
+    font-weight: normal;
+}
+
+.social-tab ul li {
+    display: inline-block;
+}
+
+.social-tab {
+    text-align: center;
+    padding: 50px 0;
+}
+
+.social-tab ul li a {
+    display: block;
+    color: #ff00f6;
+    text-decoration: none;
+    font-size: 28px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0 25px;
+    transition: .3s;
+}
+
+.section-title {
+    font-size: 36px;
+}
+
+.game-statistics-box h1 {
+    font-size: 35px;
+}
+
+.social-tab ul li a:hover {
+    opacity: .7;
+}
+
+/* Tablet desktop :768px. */
+@media (min-width: 768px) and (max-width: 991px) {
+
+    .current-jackpot {
+        font-size: 24px;
+    }
+
+    .lottery-amount {
+        margin-bottom: 20px;
+    }
+
+    .game-body-static {
+        padding: 15px 20px;
+    }
+
+    .section-title {
+        font-size: 18px;
+    }
+
+    .game-statistics-box h1 {
+        font-size: 20px;
+    }
+
+    .lottery-amount h1 {
+        font-size: 30px;
+    }
+
+    .lottery-trigger h3 {
+        letter-spacing: 3px;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    .lottery-pay-trx-button h3 {
+        font-size: 14px;
+    }
+
+    .lottery-trigger h1 {
+        font-size: 26px;
+    }
+
+    .attention-text {
+        font-size: 17px;
+    }
+
+    .lottery-pay-trx-button a {
+        font-size: 14px;
+        padding: 5px 12px;
+    }
+
+    .player-table thead tr th {
+        font-size: 10px;
+    }
+
+    .game-body-wrapper {
+        grid-template-columns: 3fr 3fr 3fr;
+    }
+
+    .player-table tbody tr td {
+        color: #bce02a;
+        font-size: 10px;
+    }
+
+    .wrapper-stack-3 .current-players-box {
+        padding: 15px 0;
+    }
+
+    .game-statistics-box h4 {
+        font-size: 14px;
+        margin-bottom: 5px;
+        font-weight: normal;
+    }
+
+    .lottery-pay-trx-button h4 {
+        font-size: 14px;
+    }
+
+    .current-players-box h1 {
+        font-size: 25px;
+    }
+
+    .social-tab ul li a {
+        font-size: 16px;
+    }
+
+}
+
+/* small mobile :320px. */
+@media (max-width: 767px) {
+    .header-logo a img {
+        width: 100%;
+    }
+
+    .player-table thead tr th {
+        font-size: 10px;
+    }
+
+    .player-table tbody tr td {
+        color: #bce02a;
+        font-size: 10px;
+    }
+
+    .wrapper-stack-3 .current-players-box {
+        padding: 15px 0;
+    }
+
+    .current-jackpot {
+        font-size: 26px;
+    }
+
+    .game-body-wrapper {
+        grid-template: inherit;
+        padding: 30px 25px;
+    }
+
+    .wrapper-stack-1 {
+        order: 2;
+    }
+
+    .game-body-static {
+        padding: 15px 20px;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-size: 18px;
+    }
+
+    .game-statistics-box h1 {
+        font-size: 20px;
+    }
+
+    .lottery-amount h1 {
+        font-size: 40px;
+    }
+
+    .lottery-amount {
+        border: 5px solid #3ef0a3;
+        margin-bottom: 25px;
+    }
+
+    .lottery-trigger h3 {
+        letter-spacing: 2px;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    .lottery-trigger h1 {
+        font-size: 24px;
+    }
+
+    .attention-text {
+        font-size: 14px;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+    }
+
+    .lottery-pay-trx-button a {
+        font-size: 16px;
+        padding: 5px 12px;
+    }
+
+    .lottery-pay-trx-button h4 {
+        font-size: 14px;
+        letter-spacing: 1px;
+        margin: 5px 0;
+    }
+
+    .yellow-text {
+        padding: 10px;
+    }
+
+    .current-players-box h1 {
+        font-size: 20px;
+    }
+
+    .current-players-box {
+        margin-bottom: 0px;
+        height: 170px;
+        margin-top: -30px;
+    }
+
+    .social-tab ul li {
+        display: block;
+    }
+
+    .social-tab ul li a {
+        padding: 8px 25px;
+        font-size: 16px;
+    }
+}

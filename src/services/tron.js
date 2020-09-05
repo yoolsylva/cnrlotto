@@ -1,22 +1,23 @@
 import store from '../store';
 import TronGrid from 'trongrid';
 
-class TronWebService {
+class TronService {
   instance = undefined;
   ready = false;
   tronGrid = undefined;
+  tronweb = undefined;
   CNRLottoContract = undefined;
   CNRTokenContract = undefined;
 
   eventTransactions = undefined;
 
   // Shasta
-  CNRLottoAddress = "TTY7JCx8EWJAjafZRYruPm6L1jdqVpv1zF"
+  CNRLottoAddress = "TQR1jCCuNoTgK8V3c3cf74aCWnXvLjnfNn"
   CNRTokenAddress = "TRjvDMXxzmmEpULikwK5uXCswJWMVPjD8J"
 
   static getInstance() {
     if (!this.instance) {
-      this.instance = new TronWebService();
+      this.instance = new TronService();
     }
     return this.instance;
   }
@@ -31,6 +32,7 @@ class TronWebService {
 
       this.tick = setInterval(async () => {
         if ((!!window.tronWeb) && (window.tronWeb.ready)) {
+          this.tronweb = window.tronWeb;
           this.tronGrid = new TronGrid(window.tronWeb);
 
           this.CNRLottoContract = await window.tronWeb.contract().at(this.CNRLottoAddress);
@@ -49,4 +51,4 @@ class TronWebService {
   }
 }
 
-export default TronWebService;
+export default TronService;

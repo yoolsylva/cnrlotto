@@ -34,7 +34,11 @@
           <div class="game-statistics-box game-statistics-bo-1">
             <h2 class="section-title">Past Winners</h2>
             <ul>
-              <li v-for="(winner,index) in pastWinners" :key="index">{{ winner }}</li>
+              <li
+                v-for="(winner,index) in pastWinners"
+                :key="index"
+                style="color: #fff"
+              >{{ winner }}</li>
             </ul>
           </div>
         </div>
@@ -44,12 +48,24 @@
         <div class="lottery-amount">
           <h1>{{currentReward}} CNR</h1>
         </div>
-        <div class="lottery-trigger">
+        <div class="lottery-trigger" v-if="this.countdown === -1">
+          <h3>Jackpot not started</h3>
+          <h1>Buy ticket to trigger Jackpot!</h1>
+        </div>
+        <div class="lottery-trigger" v-if="this.countdown !== -1 && this.countdown !== 0">
           <h3>Jackpot Triggers In</h3>
           <h1>{{this.countdown}}</h1>
         </div>
+
+        <a
+          v-if="this.countdown === 0"
+          href="#"
+          class="button-get-winner"
+          @click="gameCheck"
+        >Get Winner</a>
+
         <!-- <h1 class="attention-text">1 Entry Per Wallet Daily</h1> -->
-        <div class="lottery-pay-trx-button">
+        <div class="lottery-pay-trx-button" style="margin-top: 20px">
           <h3>Cost to play: 1 Centric Rise (CNR) per entry</h3>
           <div class="lottery-button-top">
             <h4>
@@ -120,8 +136,10 @@
 </template>
 
 <script>
-import TronWebService from "./services/tronweb";
+import TronService from "./services/tron";
 import dayjs from "dayjs";
+import Cookies from "universal-cookie";
+import { secondsToDhms } from "@/utils";
 
 export default {
   name: "Home",
@@ -138,6 +156,7 @@ export default {
       totalPlayer24hour: -1,
       yourBalance: -1,
       countdown: -1,
+      ref: null,
     };
   },
   computed: {
@@ -149,12 +168,12 @@ export default {
     },
   },
   async created() {
-    const tronweb = TronWebService.getInstance();
-    await tronweb.init();
+    const tronService = TronService.getInstance();
+    await tronService.init();
 
-    this.players = await tronweb.CNRLottoContract.getPlayers().call();
-    const createTime = await tronweb.CNRLottoContract.getCreateTime().call();
-    const endTime = await tronweb.CNRLottoContract.getEndTime().call();
+    this.players = await tronService.CNRLottoContract.getPlayers().call();
+    const createTime = await tronService.CNRLottoContract.getCreateTime().call();
+    const endTime = await tronService.CNRLottoContract.getEndTime().call();
     this.createTime = dayjs(parseInt(createTime) * 1000).format(
       "DD/MM/YYYY hh:mm:ss"
     );
@@ -164,31 +183,32 @@ export default {
 
     if (parseInt(endTime) > 0) {
       this.tick = setInterval(() => {
-        this.countdown = dayjs(
-          parseInt(parseInt(endTime) - Date.now() / 1000) * 1000
-        ).format("DD/MM/YYYY hh:mm:ss");
+        const seconds = parseInt(endTime) - parseInt(Date.now() / 1000);
+        this.countdown = secondsToDhms(seconds);
       }, 1000);
     }
 
-    const balance = await tronweb.CNRTokenContract.balanceOf(
-      tronweb.CNRLottoAddress
+    const balance = await tronService.CNRTokenContract.balanceOf(
+      tronService.CNRLottoAddress
     ).call();
-    const walletBalance = await tronweb.CNRTokenContract.balanceOf(
+    const walletBalance = await tronService.CNRTokenContract.balanceOf(
       this.accountAddress
     ).call();
     this.yourBalance = parseInt(walletBalance.balance) / 10 ** 8;
     this.currentReward = parseInt(balance.balance) / 10 ** 8;
-    const vars = await tronweb.CNRLottoContract.vars().call();
+    const vars = await tronService.CNRLottoContract.vars().call();
     this.totalWin = parseInt(vars.totalWin) / 10 ** 8;
     this.totalPlayed = parseInt(vars.totalPlayed) / 10 ** 8;
 
-    tronweb.CNRLottoContract.Create().watch((err, event) => {
+    tronService.CNRLottoContract.Create().watch((err, event) => {
       if (err) return console.error('Error with "LogCreateJob" event:', err);
       if (!event) return;
-      if (tronweb.eventTransactions.has(`${event.name}${event.transaction}`))
+      if (
+        tronService.eventTransactions.has(`${event.name}${event.transaction}`)
+      )
         return; // check set exists event or not, prevent duplicate event
 
-      tronweb.eventTransactions.add(`${event.name}${event.transaction}`); // add to set
+      tronService.eventTransactions.add(`${event.name}${event.transaction}`); // add to set
 
       console.log(event);
       const { createTime, endTime } = event.result;
@@ -202,19 +222,20 @@ export default {
 
       if (this.tick) clearInterval(this.tick);
       this.tick = setInterval(() => {
-        this.countdown = dayjs(
-          parseInt(parseInt(endTime) - Date.now() / 1000) * 1000
-        ).format("DD/MM/YYYY hh:mm:ss");
+        const seconds = parseInt(endTime) - parseInt(Date.now() / 1000);
+        this.countdown = secondsToDhms(seconds);
       }, 1000);
     });
 
-    tronweb.CNRLottoContract.Play().watch((err, event) => {
+    tronService.CNRLottoContract.Play().watch((err, event) => {
       if (err) return console.error('Error with "Play" event:', err);
       if (!event) return;
-      if (tronweb.eventTransactions.has(`${event.name}${event.transaction}`))
+      if (
+        tronService.eventTransactions.has(`${event.name}${event.transaction}`)
+      )
         return;
 
-      tronweb.eventTransactions.add(`${event.name}${event.transaction}`);
+      tronService.eventTransactions.add(`${event.name}${event.transaction}`);
 
       console.log(event);
       const { player, currentReward } = event.result;
@@ -223,33 +244,36 @@ export default {
       this.currentReward = currentReward / 10 ** 8;
     });
 
-    tronweb.CNRLottoContract.Win().watch((err, event) => {
+    tronService.CNRLottoContract.Win().watch((err, event) => {
       if (err) return console.error('Error with "Win" event:', err);
       if (!event) return;
-      if (tronweb.eventTransactions.has(`${event.name}${event.transaction}`))
+      if (
+        tronService.eventTransactions.has(`${event.name}${event.transaction}`)
+      )
         return;
 
-      tronweb.eventTransactions.add(`${event.name}${event.transaction}`);
+      tronService.eventTransactions.add(`${event.name}${event.transaction}`);
 
       console.log(event);
       const { totalWin } = event.result;
       this.totalWin = totalWin / 10 ** 8;
     });
 
-    const pastEventWins = await tronweb.tronGrid.contract.getEvents(
-      tronweb.CNRLottoAddress,
+    const pastEventWins = await tronService.tronGrid.contract.getEvents(
+      tronService.CNRLottoAddress,
       {
         event_name: "Win",
         min_timestamp: Date.now() - 24 * 60 * 60 * 30 * 1000, // get event win in last month
       }
     );
     console.log("pastEventWins", pastEventWins);
+
     this.pastWinners = pastEventWins.data.map((it) => {
-      return it.result.winner;
+      return tronService.tronweb.address.fromHex(it.result.winner);
     });
 
-    const pastEventPlays = await tronweb.tronGrid.contract.getEvents(
-      tronweb.CNRLottoAddress,
+    const pastEventPlays = await tronService.tronGrid.contract.getEvents(
+      tronService.CNRLottoAddress,
       {
         event_name: "Play",
         min_timestamp: Date.now() - 24 * 60 * 60 * 1000, // get event play in last 24 hour
@@ -258,42 +282,72 @@ export default {
 
     console.log("pastEventPlays", pastEventPlays);
     this.totalPlayer24hour = pastEventPlays.data.length;
+
+    this.getRef();
   },
   destroyed() {
     clearInterval(this.tick);
   },
   methods: {
     async play(numberTickets) {
-      const tronweb = TronWebService.getInstance();
-      const allowance = await tronweb.CNRTokenContract.allowance(
+      const tronService = TronService.getInstance();
+      const allowance = await tronService.CNRTokenContract.allowance(
         this.accountAddress,
-        tronweb.CNRLottoAddress
+        tronService.CNRLottoAddress
       ).call();
       console.log("allowance: ", allowance);
 
-      if (allowance.remaining < 1 * 10 ** 8) {
-        const res = await tronweb.CNRTokenContract.balanceOf(
+      if (allowance.remaining < numberTickets * 10 ** 8) {
+        const res = await tronService.CNRTokenContract.balanceOf(
           this.accountAddress
         ).call();
         console.log("balance: ", res);
-        await tronweb.CNRTokenContract.approve(
-          tronweb.CNRLottoAddress,
+        await tronService.CNRTokenContract.approve(
+          tronService.CNRLottoAddress,
           res.balance
         ).send();
       }
 
-      const txid = await tronweb.CNRLottoContract.play(
-        this.accountAddress,
-        numberTickets
+      const txid = await tronService.CNRLottoContract.play(
+        numberTickets,
+        this.ref
       ).send({
         shouldPollResponse: false,
       });
       console.log("transaction id: ", txid);
     },
     async gameCheck() {
-      const tronweb = TronWebService.getInstance();
-      const txid = await tronweb.CNRLottoContract.gameCheck().send();
-      console.log("transaction id: ", txid);
+      const tronService = TronService.getInstance();
+      const txid = await tronService.CNRLottoContract.gameCheck().send();
+      console.log(txid);
+    },
+    getRef() {
+      const tronService = TronService.getInstance();
+      const cookies = new Cookies();
+      const cookieref = cookies.get("ref");
+
+      if (tronService.tronweb.isAddress(cookieref)) {
+        this.ref = cookieref;
+      } else {
+        this.ref = this.accountAddress;
+
+        var href = window.location.href;
+        var ref = "";
+
+        var n = href.indexOf("ref=");
+        if (n > 0) {
+          ref = href.substring(n + 4, n + 4 + 34);
+        }
+
+        if (tronService.tronweb.isAddress(ref)) {
+          cookies.set("ref", ref, {
+            path: "/",
+            expires: new Date(Date.now() + 31536000),
+          });
+
+          this.ref = ref;
+        }
+      }
     },
   },
 };
@@ -319,5 +373,15 @@ export default {
 
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+
+.button-get-winner {
+  background: #c7004c;
+  border-radius: 50px;
+  padding: 10px 30px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 1em;
+  margin-bottom: 100px;
 }
 </style>
