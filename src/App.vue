@@ -26,7 +26,7 @@
         <div class="game-body-static game-body-2">
           <div class="game-statistics-box game-statistics-bo-1">
             <h2 class="section-title">Tickets Sold</h2>
-            <h4>Sold today: {{this.totalPlayer24hour}}</h4>
+            <h4>Sold today: {{this.totalTicket24hour}}</h4>
             <h4>Total sold: {{this.totalPlayed}}</h4>
           </div>
         </div>
@@ -49,7 +49,6 @@
           <h1>{{currentReward}} CNR</h1>
         </div>
         <div class="lottery-trigger" v-if="this.countdown === -1">
-          <h3>Jackpot not started</h3>
           <h1>Buy ticket to trigger Jackpot!</h1>
         </div>
         <div class="lottery-trigger" v-if="this.countdown !== -1 && this.countdown !== 0">
@@ -104,11 +103,11 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>21</td>
-                  <td>Tt24..Bbrj</td>
-                  <td>08-09-20 00:14:32</td>
-                  <td>1000</td>
+                <tr v-for="(player,index) in playerStats" :key="index">
+                  <td>{{currentGameNumber}}</td>
+                  <td>{{player.address}}</td>
+                  <td>{{player.lastBuyTime}}</td>
+                  <td>{{player.numberTicket}}</td>
                 </tr>
               </tbody>
             </table>
@@ -139,24 +138,26 @@
 import TronService from "./services/tron";
 import dayjs from "dayjs";
 import Cookies from "universal-cookie";
-import { secondsToDhms } from "@/utils";
+import Swal from "sweetalert2";
+import { secondsToDhms, shortenAddress } from "@/utils";
 
 export default {
   name: "Home",
   components: {},
   data() {
     return {
-      players: [],
+      playerStats: [],
       createTime: -1,
       endTime: -1,
       currentReward: -1,
       totalWin: -1,
       pastWinners: [],
       totalPlayed: -1,
-      totalPlayer24hour: -1,
+      totalTicket24hour: -1,
       yourBalance: -1,
       countdown: -1,
       ref: null,
+      currentGameNumber: -1,
     };
   },
   computed: {
@@ -171,7 +172,30 @@ export default {
     const tronService = TronService.getInstance();
     await tronService.init();
 
-    this.players = await tronService.CNRLottoContract.getPlayers().call();
+    const currentGameNumber = await tronService.CNRLottoContract.getTotalGames().call();
+    this.currentGameNumber = parseInt(currentGameNumber);
+
+    const players = await tronService.CNRLottoContract.getPlayers().call();
+    const filterPlayers = Array.from(new Set(players));
+
+    const playerStats = [];
+    for (let i = 0; i < filterPlayers.length; i++) {
+      const playerStat = await tronService.CNRLottoContract.getPlayerStat(
+        this.currentGameNumber,
+        filterPlayers[i]
+      ).call();
+      playerStats.push({
+        address: shortenAddress(
+          tronService.tronweb.address.fromHex(filterPlayers[i])
+        ),
+        lastBuyTime: dayjs(parseInt(playerStat.lastBuyTime) * 1000).format(
+          "DD/MM/YYYY hh:mm:ss"
+        ),
+        numberTicket: parseInt(playerStat.numberTicket),
+      });
+    }
+    this.playerStats = playerStats;
+
     const createTime = await tronService.CNRLottoContract.getCreateTime().call();
     const endTime = await tronService.CNRLottoContract.getEndTime().call();
     this.createTime = dayjs(parseInt(createTime) * 1000).format(
@@ -185,6 +209,7 @@ export default {
       this.tick = setInterval(() => {
         const seconds = parseInt(endTime) - parseInt(Date.now() / 1000);
         this.countdown = secondsToDhms(seconds);
+        if (seconds <= 0) clearInterval(this.tick);
       }, 1000);
     }
 
@@ -224,10 +249,11 @@ export default {
       this.tick = setInterval(() => {
         const seconds = parseInt(endTime) - parseInt(Date.now() / 1000);
         this.countdown = secondsToDhms(seconds);
+        if (seconds <= 0) clearInterval(this.tick);
       }, 1000);
     });
 
-    tronService.CNRLottoContract.Play().watch((err, event) => {
+    tronService.CNRLottoContract.Play().watch(async (err, event) => {
       if (err) return console.error('Error with "Play" event:', err);
       if (!event) return;
       if (
@@ -238,10 +264,40 @@ export default {
       tronService.eventTransactions.add(`${event.name}${event.transaction}`);
 
       console.log(event);
-      const { player, currentReward } = event.result;
-      this.players = [...this.players, player];
-      console.log("player array : ", this.players);
-      this.currentReward = currentReward / 10 ** 8;
+      const { player, currentReward, totalPlayed, bet } = event.result;
+      const playerStat = await tronService.CNRLottoContract.getPlayerStat(
+        this.currentGameNumber,
+        player
+      ).call();
+
+      const obj = {
+        address: shortenAddress(tronService.tronweb.address.fromHex(player)),
+        lastBuyTime: dayjs(parseInt(playerStat.lastBuyTime) * 1000).format(
+          "DD/MM/YYYY hh:mm:ss"
+        ),
+        numberTicket: parseInt(playerStat.numberTicket),
+      };
+
+      const index = this.playerStats.findIndex(
+        (it) => it.address === obj.address
+      );
+      if (index < 0) {
+        this.playerStats = [...this.playerStats, obj];
+      } else {
+        this.playerStats.splice(index, 1, obj);
+      }
+
+      this.currentReward = parseInt(currentReward) / 10 ** 8;
+      this.totalPlayed = parseInt(totalPlayed) / 10 ** 8;
+      this.totalTicket24hour += parseInt(bet) / 10 ** 8;
+
+      Swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: `${obj.address} buy ${bet / 10 ** 8} ticket!`,
+        showConfirmButton: false,
+        timer: 1500,
+      });
     });
 
     tronService.CNRLottoContract.Win().watch((err, event) => {
@@ -255,8 +311,23 @@ export default {
       tronService.eventTransactions.add(`${event.name}${event.transaction}`);
 
       console.log(event);
-      const { totalWin } = event.result;
+      const { totalWin, winner, amount } = event.result;
       this.totalWin = totalWin / 10 ** 8;
+      this.createTime = -1;
+      this.endTime = -1;
+      this.playerStats = [];
+      this.countdown = -1;
+      this.currentReward = 0
+
+      this.pastWinners = [tronService.tronweb.address.fromHex(winner), ...this.pastWinners]
+
+      Swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: `Winner ${shortenAddress(winner)} win Jackpot ${amount/10**8} CNR!`,
+        showConfirmButton: false,
+        timer: 10000,
+      });
     });
 
     const pastEventWins = await tronService.tronGrid.contract.getEvents(
@@ -270,7 +341,7 @@ export default {
 
     this.pastWinners = pastEventWins.data.map((it) => {
       return tronService.tronweb.address.fromHex(it.result.winner);
-    });
+    }).reverse()
 
     const pastEventPlays = await tronService.tronGrid.contract.getEvents(
       tronService.CNRLottoAddress,
@@ -281,7 +352,11 @@ export default {
     );
 
     console.log("pastEventPlays", pastEventPlays);
-    this.totalPlayer24hour = pastEventPlays.data.length;
+    let totalTicket24hour = 0;
+    pastEventPlays.data.forEach((it) => {
+      totalTicket24hour += parseInt(it.result.bet) / 10 ** 8;
+    });
+    this.totalTicket24hour = totalTicket24hour;
 
     this.getRef();
   },
@@ -291,6 +366,17 @@ export default {
   methods: {
     async play(numberTickets) {
       const tronService = TronService.getInstance();
+      const endTime = await tronService.CNRLottoContract.getEndTime().call();
+      const currentTime = parseInt(Date.now() / 1000);
+      if (endTime > 0 && currentTime > endTime) {
+        Swal.fire({
+          icon: "error",
+          title: "Jackpot ended",
+          text: "Get winner first and start new Jackpot!",
+        });
+        return;
+      }
+
       const allowance = await tronService.CNRTokenContract.allowance(
         this.accountAddress,
         tronService.CNRLottoAddress
@@ -308,13 +394,16 @@ export default {
         ).send();
       }
 
-      const txid = await tronService.CNRLottoContract.play(
-        numberTickets,
-        this.ref
-      ).send({
-        shouldPollResponse: false,
+      await tronService.CNRLottoContract.play(numberTickets, this.ref).send({
+        shouldPollResponse: true,
       });
-      console.log("transaction id: ", txid);
+
+      Swal.fire({
+        icon: "success",
+        title: "Buy ticket success!",
+        showConfirmButton: false,
+        timer: 2000,
+      });
     },
     async gameCheck() {
       const tronService = TronService.getInstance();

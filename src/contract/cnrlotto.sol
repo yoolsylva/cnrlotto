@@ -45,9 +45,9 @@ contract CNRLotto {
     mapping(uint32 => Game) games;
     address payable [] players;
 
-    event Create(address creator, uint256 createTime, uint256 endTime, uint256 bet);
+    event Create(address creator, uint256 createTime, uint256 endTime, uint256 bet, uint gameNumber);
     event Play(address player, uint256 playTime, uint256 totalPlayer, uint256 bet, uint256 totalPlayed, uint256 currentReward);
-    event Win(address creator,address winner, uint256 amount,uint gameNumber);
+    event Win(address creator,address winner, uint256 amount,uint gameNumber, uint256 totalWin);
     
     function play(uint256 numberTicket, address ref) external {
         require(msg.sender == tx.origin, 'Caller must not be Contract Address');
@@ -82,7 +82,7 @@ contract CNRLotto {
             createTime = now;
             endTime = createTime + vars.gameTimerSeconds;
             vars.totalGames++;
-            emit Create(msg.sender,createTime,endTime,vars.gameBet*numberTicket);
+            emit Create(msg.sender,createTime,endTime,vars.gameBet, vars.totalGames);
         } 
         
         vars.totalPlayed += vars.gameBet*numberTicket;
@@ -93,7 +93,7 @@ contract CNRLotto {
             players.push(msg.sender);
         }
        
-        emit Play(msg.sender,now,players.length,vars.gameBet,vars.totalPlayed,token.balanceOf(address(this)));
+        emit Play(msg.sender,now,players.length,vars.gameBet*numberTicket,vars.totalPlayed,token.balanceOf(address(this)));
     }
     
     function getTimeLeft() public view returns(int32){
@@ -125,7 +125,7 @@ contract CNRLotto {
             vars.totalWin += reward;
             mystats[winner].myTotalWin += reward;
     
-            emit Win(players[0],winner,reward,vars.totalGames);
+            emit Win(players[0],winner,reward,vars.totalGames, vars.totalWin);
         }
         resetGame();
         

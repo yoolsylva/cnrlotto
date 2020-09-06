@@ -12,6 +12,7 @@
     "core-js": "^3.6.5",
     "dayjs": "^1.8.34",
     "injectpromise": "^1.0.0",
+    "sweetalert2": "^9.17.2",
     "trongrid": "^1.2.6",
     "universal-cookie": "^4.0.3",
     "vue": "^2.6.11",
