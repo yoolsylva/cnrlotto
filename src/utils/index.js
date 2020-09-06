@@ -32,6 +32,6 @@ export function secondsToDhms(seconds) {
   var dDisplay = d > 0 ? d + "D : " : "";
   var hDisplay = h > 0 ? h + "H : " : "";
   var mDisplay = m > 0 ? m + "M : " : "";
-  var sDisplay = s > 0 ? s + "S" : "";
+  var sDisplay = s > 0 ? s + "S" : "00S";
   return dDisplay + hDisplay + mDisplay + sDisplay;
 }

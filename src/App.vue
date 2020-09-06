@@ -26,8 +26,8 @@
         <div class="game-body-static game-body-2">
           <div class="game-statistics-box game-statistics-bo-1">
             <h2 class="section-title">Tickets Sold</h2>
-            <h4>Sold today: {{this.totalTicket24hour}}</h4>
-            <h4>Total sold: {{this.totalPlayed}}</h4>
+            <h4>Sold today: {{totalTicket24hour}}</h4>
+            <h4>Total sold: {{totalPlayed}}</h4>
           </div>
         </div>
         <div class="game-body-static game-body-3">
@@ -48,20 +48,23 @@
         <div class="lottery-amount">
           <h1>{{currentReward}} CNR</h1>
         </div>
-        <div class="lottery-trigger" v-if="this.countdown === -1">
-          <h1>Buy ticket to trigger Jackpot!</h1>
+        <div class="lottery-trigger" v-if="countdown === -1">
+          <h2>Buy as many tickets as you want!</h2>
         </div>
-        <div class="lottery-trigger" v-if="this.countdown !== -1 && this.countdown !== 0">
+        <div class="lottery-trigger" v-if="countdown !== -1 && countdown !== 0">
           <h3>Jackpot Triggers In</h3>
           <h1>{{this.countdown}}</h1>
         </div>
 
-        <a
-          v-if="this.countdown === 0"
-          href="#"
-          class="button-get-winner"
-          @click="gameCheck"
-        >Get Winner</a>
+        <div class="lottery-trigger" v-if="countdown === 0">
+          <h3>Jackpot Ended!</h3>
+          <h1>00S</h1>
+          <a
+            href="#"
+            class="button-get-winner"
+            @click="gameCheck"
+          >Get Winner</a>
+        </div>
 
         <!-- <h1 class="attention-text">1 Entry Per Wallet Daily</h1> -->
         <div class="lottery-pay-trx-button" style="margin-top: 20px">
@@ -73,7 +76,7 @@
             </h4>
             <h4>
               Your Wallet Balance:
-              <span>{{this.yourBalance}} CNR</span>
+              <span>{{yourBalance}} CNR</span>
             </h4>
             <h4 class="yellow-text">How many tickets do you want to buy?</h4>
           </div>
@@ -86,7 +89,7 @@
             <a href="#" v-on:click="play(100)">100</a>
             <a href="#" v-on:click="play(1000)">1000</a>
           </div>
-          <h4>You've entered the jackpot.</h4>
+          <h4 v-if="isEnteredJackpot">You've entered the jackpot.</h4>
         </div>
       </div>
       <div class="game-wrapper-single wrapper-stack-3">
@@ -103,7 +106,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(player,index) in playerStats" :key="index">
+                <tr v-for="(player,index) in playerStats" :key="index" >
                   <td>{{currentGameNumber}}</td>
                   <td>{{player.address}}</td>
                   <td>{{player.lastBuyTime}}</td>
@@ -158,6 +161,7 @@ export default {
       countdown: -1,
       ref: null,
       currentGameNumber: -1,
+      isEnteredJackpot: false,
     };
   },
   computed: {
@@ -184,6 +188,7 @@ export default {
         this.currentGameNumber,
         filterPlayers[i]
       ).call();
+
       playerStats.push({
         address: shortenAddress(
           tronService.tronweb.address.fromHex(filterPlayers[i])
@@ -193,6 +198,12 @@ export default {
         ),
         numberTicket: parseInt(playerStat.numberTicket),
       });
+
+      if (
+        tronService.tronweb.address.fromHex(filterPlayers[i]) ===
+        this.accountAddress
+      )
+        this.isEnteredJackpot = true;
     }
     this.playerStats = playerStats;
 
@@ -265,6 +276,10 @@ export default {
 
       console.log(event);
       const { player, currentReward, totalPlayed, bet } = event.result;
+
+      if (tronService.tronweb.address.fromHex(player) === this.accountAddress)
+        this.isEnteredJackpot = true;
+
       const playerStat = await tronService.CNRLottoContract.getPlayerStat(
         this.currentGameNumber,
         player
@@ -317,14 +332,20 @@ export default {
       this.endTime = -1;
       this.playerStats = [];
       this.countdown = -1;
-      this.currentReward = 0
+      this.currentReward = 0;
+      this.isEnteredJackpot = false;
 
-      this.pastWinners = [tronService.tronweb.address.fromHex(winner), ...this.pastWinners]
+      this.pastWinners = [
+        tronService.tronweb.address.fromHex(winner),
+        ...this.pastWinners,
+      ];
 
       Swal.fire({
         position: "top-end",
         icon: "success",
-        title: `Winner ${shortenAddress(winner)} win Jackpot ${amount/10**8} CNR!`,
+        title: `Winner ${shortenAddress(winner)} win Jackpot ${
+          amount / 10 ** 8
+        } CNR!`,
         showConfirmButton: false,
         timer: 10000,
       });
@@ -339,9 +360,11 @@ export default {
     );
     console.log("pastEventWins", pastEventWins);
 
-    this.pastWinners = pastEventWins.data.map((it) => {
-      return tronService.tronweb.address.fromHex(it.result.winner);
-    }).reverse()
+    this.pastWinners = pastEventWins.data
+      .map((it) => {
+        return tronService.tronweb.address.fromHex(it.result.winner);
+      })
+      .reverse();
 
     const pastEventPlays = await tronService.tronGrid.contract.getEvents(
       tronService.CNRLottoAddress,
