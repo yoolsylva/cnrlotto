@@ -46,8 +46,8 @@ contract CNRLotto {
     address payable [] players;
 
     event Create(address creator, uint256 createTime, uint256 endTime, uint256 bet, uint gameNumber);
-    event Play(address player, uint256 playTime, uint256 totalPlayer, uint256 bet, uint256 totalPlayed, uint256 currentReward);
-    event Win(address creator,address winner, uint256 amount,uint gameNumber, uint256 totalWin);
+    event Play(address player, uint256 playTime, uint256 totalPlayer, uint256 bet, uint256 totalPlayed, uint256 currentReward, uint32 totalGames);
+    event Win(address creator,address winner, uint256 amount,uint gameNumber, uint256 totalWin, uint256 timeWin);
     
     function play(uint256 numberTicket, address ref) external {
         require(msg.sender == tx.origin, 'Caller must not be Contract Address');
@@ -93,7 +93,7 @@ contract CNRLotto {
             players.push(msg.sender);
         }
        
-        emit Play(msg.sender,now,players.length,vars.gameBet*numberTicket,vars.totalPlayed,token.balanceOf(address(this)));
+        emit Play(msg.sender,now,players.length,vars.gameBet*numberTicket,vars.totalPlayed,token.balanceOf(address(this)), vars.totalGames);
     }
     
     function getTimeLeft() public view returns(int32){
@@ -125,7 +125,7 @@ contract CNRLotto {
             vars.totalWin += reward;
             mystats[winner].myTotalWin += reward;
     
-            emit Win(players[0],winner,reward,vars.totalGames, vars.totalWin);
+            emit Win(players[0],winner,reward,vars.totalGames, vars.totalWin, now);
         }
         resetGame();
         
@@ -144,7 +144,7 @@ contract CNRLotto {
 
         _owner = msg.sender;
         vars.gameBet = 1*(10**decimals);                   //max amount of a single bet
-        vars.comHouse = 500;                                //Com to the House during withdraw 5% /10000
+        vars.comHouse = 1000;                                //Com to the House during withdraw 5% /10000
         vars.comRef = 500;                                  //Ref Com
         vars.comROI = 1000;                                 //ROI Com
                                         

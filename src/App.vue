@@ -33,13 +33,33 @@
         <div class="game-body-static game-body-3">
           <div class="game-statistics-box game-statistics-bo-1">
             <h2 class="section-title">Past Winners</h2>
-            <ul>
+            <!-- <ul>
               <li
                 v-for="(winner,index) in pastWinners"
                 :key="index"
                 style="color: #fff"
               >{{ winner }}</li>
-            </ul>
+            </ul>-->
+            <div class="Winner-stastics">
+              <table class="player-table">
+                <thead>
+                  <tr>
+                    <!-- <th>Game#</th> -->
+                    <th>Date/Time</th>
+                    <th>Wallet#</th>
+                    <th>Amount won</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(winner,index) in pastWinners" :key="index">
+                    <!-- <td>{{winner.gameNumber}}</td> -->
+                    <td>{{winner.timeWin}}</td>
+                    <td>{{winner.address}}</td>
+                    <td>{{winner.totalWin}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -59,11 +79,7 @@
         <div class="lottery-trigger" v-if="countdown === 0">
           <h3>Jackpot Ended!</h3>
           <h1>00S</h1>
-          <a
-            href="#"
-            class="button-get-winner"
-            @click="gameCheck"
-          >Get Winner</a>
+          <a href="#" class="button-get-winner" @click="gameCheck">Get Winner</a>
         </div>
 
         <!-- <h1 class="attention-text">1 Entry Per Wallet Daily</h1> -->
@@ -106,7 +122,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(player,index) in playerStats" :key="index" >
+                <tr v-for="(player,index) in playerStats" :key="index">
                   <td>{{currentGameNumber}}</td>
                   <td>{{player.address}}</td>
                   <td>{{player.lastBuyTime}}</td>
@@ -275,16 +291,24 @@ export default {
       tronService.eventTransactions.add(`${event.name}${event.transaction}`);
 
       console.log(event);
-      const { player, currentReward, totalPlayed, bet } = event.result;
+      const {
+        player,
+        currentReward,
+        totalPlayed,
+        bet,
+        totalGames,
+      } = event.result;
+
+      this.currentGameNumber = totalGames;
 
       if (tronService.tronweb.address.fromHex(player) === this.accountAddress)
         this.isEnteredJackpot = true;
 
       const playerStat = await tronService.CNRLottoContract.getPlayerStat(
-        this.currentGameNumber,
+        // this.currentGameNumber,
+        totalGames,
         player
       ).call();
-
       const obj = {
         address: shortenAddress(tronService.tronweb.address.fromHex(player)),
         lastBuyTime: dayjs(parseInt(playerStat.lastBuyTime) * 1000).format(
@@ -306,6 +330,11 @@ export default {
       this.totalPlayed = parseInt(totalPlayed) / 10 ** 8;
       this.totalTicket24hour += parseInt(bet) / 10 ** 8;
 
+      const walletBalance = await tronService.CNRTokenContract.balanceOf(
+        this.accountAddress
+      ).call();
+      this.yourBalance = parseInt(walletBalance.balance) / 10 ** 8;
+
       Swal.fire({
         position: "top-end",
         icon: "success",
@@ -315,7 +344,7 @@ export default {
       });
     });
 
-    tronService.CNRLottoContract.Win().watch((err, event) => {
+    tronService.CNRLottoContract.Win().watch(async (err, event) => {
       if (err) return console.error('Error with "Win" event:', err);
       if (!event) return;
       if (
@@ -326,7 +355,7 @@ export default {
       tronService.eventTransactions.add(`${event.name}${event.transaction}`);
 
       console.log(event);
-      const { totalWin, winner, amount } = event.result;
+      const { totalWin, winner, amount, gameNumber, timeWin } = event.result;
       this.totalWin = totalWin / 10 ** 8;
       this.createTime = -1;
       this.endTime = -1;
@@ -336,16 +365,28 @@ export default {
       this.isEnteredJackpot = false;
 
       this.pastWinners = [
-        tronService.tronweb.address.fromHex(winner),
+        {
+          gameNumber: gameNumber,
+          address: shortenAddress(tronService.tronweb.address.fromHex(winner)),
+          totalWin: parseInt(amount) / 10 ** 8,
+          timeWin: dayjs(parseInt(timeWin) * 1000).format(
+            "DD/MM/YYYY hh:mm:ss"
+          ),
+        },
         ...this.pastWinners,
       ];
+
+      const walletBalance = await tronService.CNRTokenContract.balanceOf(
+        this.accountAddress
+      ).call();
+      this.yourBalance = parseInt(walletBalance.balance) / 10 ** 8;
 
       Swal.fire({
         position: "top-end",
         icon: "success",
-        title: `Winner ${shortenAddress(winner)} win Jackpot ${
-          amount / 10 ** 8
-        } CNR!`,
+        title: `Winner ${shortenAddress(
+          tronService.tronweb.address.fromHex(winner)
+        )} win Jackpot ${amount / 10 ** 8} CNR!`,
         showConfirmButton: false,
         timer: 10000,
       });
@@ -362,10 +403,21 @@ export default {
 
     this.pastWinners = pastEventWins.data
       .map((it) => {
-        return tronService.tronweb.address.fromHex(it.result.winner);
+        const winnerInfo = {
+          gameNumber: it.result.gameNumber,
+          address: shortenAddress(
+            tronService.tronweb.address.fromHex(it.result.winner)
+          ),
+          totalWin: parseInt(it.result.amount) / 10 ** 8,
+          timeWin: dayjs(parseInt(it.result.timeWin) * 1000).format(
+            "DD/MM/YYYY hh:mm:ss"
+          ),
+        };
+        return winnerInfo;
       })
       .reverse();
 
+    console.log("pastWinner 375 is: ", this.pastWinners);
     const pastEventPlays = await tronService.tronGrid.contract.getEvents(
       tronService.CNRLottoAddress,
       {
@@ -421,12 +473,12 @@ export default {
         shouldPollResponse: true,
       });
 
-      Swal.fire({
-        icon: "success",
-        title: "Buy ticket success!",
-        showConfirmButton: false,
-        timer: 2000,
-      });
+      // Swal.fire({
+      //   icon: "success",
+      //   title: "Buy ticket success!",
+      //   showConfirmButton: false,
+      //   timer: 2000,
+      // });
     },
     async gameCheck() {
       const tronService = TronService.getInstance();
@@ -496,4 +548,5 @@ export default {
   font-size: 1em;
   margin-bottom: 100px;
 }
+
 </style>
