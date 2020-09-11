@@ -144,7 +144,7 @@ contract CNRLotto {
 
         _owner = msg.sender;
         vars.gameBet = 1*(10**decimals);                   //max amount of a single bet
-        vars.comHouse = 1000;                                //Com to the House during withdraw 5% /10000
+        vars.comHouse = 500;                                //Com to the House during withdraw 5% /10000
         vars.comRef = 500;                                  //Ref Com
         vars.comROI = 1000;                                 //ROI Com
                                         

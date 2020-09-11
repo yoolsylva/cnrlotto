@@ -106,6 +106,20 @@
             <a href="#" v-on:click="play(1000)">1000</a>
           </div>
           <h4 v-if="isEnteredJackpot">You've entered the jackpot.</h4>
+          <h4 v-if="isEnteredJackpot === false">Timer starts when there are 1 or more players.</h4>
+          <h4 className="earns">REFERRAL LINK:</h4>
+          <div class="referral-link">
+            <input type="text" readonly v-model="message" />
+            <button
+              class="trx-btn btn-copy"
+              type="button"
+              v-clipboard:copy="message"
+              v-clipboard:success="onCopy"
+              v-clipboard:error="onError"
+            >Copy!</button>
+            <span  v-if="copied">Copied.</span>
+          </div>
+          
         </div>
       </div>
       <div class="game-wrapper-single wrapper-stack-3">
@@ -115,10 +129,10 @@
             <table class="player-table">
               <thead>
                 <tr>
-                  <th>Game#</th>
-                  <th>Wallet#</th>
+                  <th>Game #</th>
+                  <th>Wallet #</th>
                   <th>Date/Time</th>
-                  <th>#tickets</th>
+                  <th>Tickets Bought</th>
                 </tr>
               </thead>
               <tbody>
@@ -134,6 +148,14 @@
         </div>
       </div>
     </section>
+    <p align="center">
+      <a
+        class="smart-contract"
+        align="center"
+        href="https://shasta.tronscan.org/?_ga=2.264279631.1391848663.1599805570-527983632.1598499554#/contract/TUwuvejicwVN31XTKE12mKzpjNULo3aMsc/code"
+        target="_blank"
+      >Contract: TUwuvejicwVN31XTKE12mKzpjNULo3aMsc</a>
+    </p>
     <footer class="footer-area">
       <div class="social-tab">
         <ul>
@@ -178,6 +200,8 @@ export default {
       ref: null,
       currentGameNumber: -1,
       isEnteredJackpot: false,
+      message: "https://cryptoworldgames.com/?ref=TGoghFyYDN8Um1QVmRgCZxp37i6PTBJ8qD",
+      copied: false
     };
   },
   computed: {
@@ -513,6 +537,12 @@ export default {
         }
       }
     },
+    onCopy() {
+      this.copied = true;
+    },
+    onError() {
+      alert('Failed to copy texts. Please try again !')
+    }
   },
 };
 </script>
@@ -547,6 +577,56 @@ export default {
   text-decoration: none;
   font-size: 1em;
   margin-bottom: 100px;
+}
+
+.smart-contract {
+  color: #007bff;
+  text-decoration: none;
+}
+
+input[type="text"] {
+	background: #3b3b3b;
+	border: 2px solid #747576;
+	height: 25px;
+	width: 50%;
+	border-radius: 50px;
+	padding: 5px 15px;
+	color: #fff;
+	margin-top: 18px;
+  font-size: 16px;
+}
+
+.trx-btn {
+	background: #9612ee;
+	background: -moz-linear-gradient(-45deg, #9612ee 0%, #9b59c7 100%);
+	background: -webkit-linear-gradient(-45deg, #9612ee 0%, #9b59c7 100%);
+	background: linear-gradient(135deg, #9612ee 0%, #9b59c7 100%);
+	font-size: 16px;
+	line-height: 16px;
+	margin-top: 20px;
+	padding: 10px 25px;
+	transition: all 0.3s ease 0s;
+	-webkit-transition: all 0.3s ease 0s;
+	-moz-transition: all 0.3s ease 0s;
+	-ms-transition: all 0.3s ease 0s;
+	-o-transition: all 0.3s ease 0s;
+}
+
+.trx-btn:hover {
+	background: #fff;
+	color: #3b3b3b;
+}
+
+.btn-copy {
+  margin: 20px 0px 0px 50px;
+  font-weight: 700;
+  font-size: 18px;
+  color: #fff;
+}
+
+span {
+  color: red;
+  margin-left: 20px;
 }
 
 </style>

@@ -12,7 +12,7 @@ class TronService {
   eventTransactions = undefined;
 
   // Shasta
-  CNRLottoAddress = "TTx4oP4VSqJzQcTXDAhfgikhefurfqadXt"
+  CNRLottoAddress = "TUwuvejicwVN31XTKE12mKzpjNULo3aMsc"
   CNRTokenAddress = "TRjvDMXxzmmEpULikwK5uXCswJWMVPjD8J"
 
   static getInstance() {
