@@ -4,6 +4,7 @@ import TronGrid from 'trongrid';
 class TronService {
   instance = undefined;
   ready = false;
+  address = "-";
   tronGrid = undefined;
   tronweb = undefined;
   CNRLottoContract = undefined;
@@ -34,6 +35,7 @@ class TronService {
         if ((!!window.tronWeb) && (window.tronWeb.ready)) {
           this.tronweb = window.tronWeb;
           this.tronGrid = new TronGrid(window.tronWeb);
+          this.address = window.tronWeb.defaultAddress.base58;
 
           this.CNRLottoContract = await window.tronWeb.contract().at(this.CNRLottoAddress);
           this.CNRTokenContract = await window.tronWeb.contract().at(this.CNRTokenAddress);

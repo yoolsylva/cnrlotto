@@ -45,8 +45,8 @@
                                 <tr>
                                     <!-- <th>Game#</th> -->
                                     <th>Date/Time</th>
-                                    <th>Wallet#</th>
-                                    <th>Amount won</th>
+                                    <th>Wallet #</th>
+                                    <th>Amount Won</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -191,8 +191,9 @@ export default {
             ref: null,
             currentGameNumber: -1,
             isEnteredJackpot: false,
-            message: "https://cryptoworldgames.com/?ref=TGoghFyYDN8Um1QVmRgCZxp37i6PTBJ8qD",
-            copied: false
+            message: "",
+            copied: false,
+            address: "",
         };
     },
     computed: {
@@ -206,6 +207,10 @@ export default {
     async created() {
         const tronService = TronService.getInstance();
         await tronService.init();
+
+        this.message = "https://cryptoworldgames.com/?ref=" + tronService.address;
+
+        console.log('address is: ', this.message);
 
         const currentGameNumber = await tronService.CNRLottoContract.getTotalGames().call();
         this.currentGameNumber = parseInt(currentGameNumber);
