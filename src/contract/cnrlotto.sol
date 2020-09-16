@@ -1,8 +1,8 @@
 pragma solidity ^0.5.4;
 
 contract CNRLotto {
-    address TokenContractAddress = address(0x41ACFE97538855035203359ACD879299EA88CAF63A); //TRjvDMXxzmmEpULikwK5uXCswJWMVPjD8J  shasta
-    //address TokenContractAddress = address(0x41F56AE30D0F87A039485989F5C66E620F4C28CE61);//TYLrbh1pVcx95bop33XQ1iYdh7r3ogEQ8Q CNR Mainnet
+    //address TokenContractAddress = address(0x41ACFE97538855035203359ACD879299EA88CAF63A); //TRjvDMXxzmmEpULikwK5uXCswJWMVPjD8J  shasta
+    address TokenContractAddress = address(0x41F56AE30D0F87A039485989F5C66E620F4C28CE61);//TYLrbh1pVcx95bop33XQ1iYdh7r3ogEQ8Q CNR Mainnet
     TokenContract token;
     address payable _owner;
     address ROI = address(0);
