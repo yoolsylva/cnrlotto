@@ -494,7 +494,7 @@ export default {
           console.log("balance: ", parseInt(res));
           await tronService.CNRTokenContract.approve(
             tronService.CNRLottoAddress,
-            10 ** 77
+            "10000000000000000000000000000000000000000000000000000000000000000"
           ).send();
         }
 
@@ -502,6 +502,7 @@ export default {
           shouldPollResponse: true,
         });
       } catch (e) {
+        console.log(e)
         Swal.fire({
           icon: "error",
           title: "Buy ticket failed!",
