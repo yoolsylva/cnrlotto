@@ -151,9 +151,9 @@
       <a
         class="smart-contract"
         align="center"
-        href="https://shasta.tronscan.org/?_ga=2.264279631.1391848663.1599805570-527983632.1598499554#/contract/TUwuvejicwVN31XTKE12mKzpjNULo3aMsc/code"
+        href="https://tronscan.org/#/contract/TMfztYHt6n5QcKobSkKKCHJZgLCJHwfcqk/code"
         target="_blank"
-      >Contract: TUwuvejicwVN31XTKE12mKzpjNULo3aMsc</a>
+      >Contract: TMfztYHt6n5QcKobSkKKCHJZgLCJHwfcqk</a>
     </p>
     <footer class="footer-area">
       <div class="social-tab">
