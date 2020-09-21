@@ -155,6 +155,12 @@
         target="_blank"
       >Contract: TMfztYHt6n5QcKobSkKKCHJZgLCJHwfcqk</a>
     </p>
+    <p align="center">
+      <a
+        class="smart-contract"
+        v-on:click="feeShow()"
+      >Fees</a>
+    </p>
     <footer class="footer-area">
       <div class="social-tab">
         <ul>
@@ -274,8 +280,8 @@ export default {
     const walletBalance = await tronService.CNRTokenContract.balanceOf(
       this.accountAddress
     ).call();
-    this.yourBalance = parseInt(walletBalance) / 10 ** 8;
-    this.currentReward = parseInt(balance) / 10 ** 8;
+    this.yourBalance = parseInt(walletBalance.balance._hex/ 10 ** 8) ;
+    this.currentReward = parseInt(balance.balance._hex) / 10 ** 8;
     const vars = await tronService.CNRLottoContract.vars().call();
     this.totalWin = parseInt(vars.totalWin) / 10 ** 8;
     this.totalPlayed = parseInt(vars.totalPlayed) / 10 ** 8;
@@ -361,7 +367,8 @@ export default {
       const walletBalance = await tronService.CNRTokenContract.balanceOf(
         this.accountAddress
       ).call();
-      this.yourBalance = parseInt(walletBalance.balance) / 10 ** 8;
+
+      this.yourBalance = parseInt(walletBalance.balance._hex/ 10 ** 8) ;
 
       Swal.fire({
         position: "top-end",
@@ -407,7 +414,7 @@ export default {
       const walletBalance = await tronService.CNRTokenContract.balanceOf(
         this.accountAddress
       ).call();
-      this.yourBalance = parseInt(walletBalance.balance) / 10 ** 8;
+      this.yourBalance = parseInt(walletBalance.balance._hex/ 10 ** 8) ;
 
       Swal.fire({
         position: "top-end",
@@ -550,6 +557,14 @@ export default {
     onError() {
       alert("Failed to copy texts. Please try again !");
     },
+    feeShow() {
+    Swal.fire({
+      title: "How to play 1% ROI?",
+      html:"Fees: 20% (5% to site owner, 5% to feed next jackpot round, 5% to feed 1% Daily CNR ROI, and 5% to pay referrers. If no referrers, then its 5% to site owner, 5% to feed next jackpot round, 10% to feed 1% Daily CNR ROI). ",
+      showCloseButton: true,
+      showCancelButton: true
+    });
+  }
   },
 };
 </script>
