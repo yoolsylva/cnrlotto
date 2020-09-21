@@ -501,7 +501,7 @@ export default {
           console.log("balance: ", parseInt(res));
           await tronService.CNRTokenContract.approve(
             tronService.CNRLottoAddress,
-            "10000000000000000000000000000000000000000000000000000000000000000"
+            numberTickets * 10 ** 8
           ).send();
         }
 
