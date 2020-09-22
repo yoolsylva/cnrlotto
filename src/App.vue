@@ -207,7 +207,6 @@ export default {
       isEnteredJackpot: false,
       message: "",
       copied: false,
-      address: "",
     };
   },
   computed: {
@@ -223,8 +222,6 @@ export default {
     await tronService.init();
 
     this.message = "https://cryptoworldgames.com/?ref=" + tronService.address;
-
-    console.log("address is: ", this.message);
 
     const currentGameNumber = await tronService.CNRLottoContract.getTotalGames().call();
     this.currentGameNumber = parseInt(currentGameNumber);
@@ -559,8 +556,8 @@ export default {
     },
     feeShow() {
     Swal.fire({
-      title: "How to play 1% ROI?",
-      html:"Fees: 20% (5% to site owner, 5% to feed next jackpot round, 5% to feed 1% Daily CNR ROI, and 5% to pay referrers. If no referrers, then its 5% to site owner, 5% to feed next jackpot round, 10% to feed 1% Daily CNR ROI). ",
+      title: "Fees",
+      html:" 20% (5% to site owner, 5% to feed next jackpot round, 5% to feed 1% Daily CNR ROI, and 5% to pay referrers. If no referrers, then its 5% to site owner, 5% to feed next jackpot round, 10% to feed 1% Daily CNR ROI). ",
       showCloseButton: true,
       showCancelButton: true
     });
