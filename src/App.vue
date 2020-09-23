@@ -277,8 +277,10 @@ export default {
     const walletBalance = await tronService.CNRTokenContract.balanceOf(
       this.accountAddress
     ).call();
-    this.yourBalance = parseInt(walletBalance.balance._hex/ 10 ** 8) ;
-    this.currentReward = parseInt(balance.balance._hex) / 10 ** 8;
+
+    console.log('balance is: ', balance)
+    this.yourBalance = parseInt(walletBalance._hex/ 10 ** 8) ;
+    this.currentReward = parseInt(balance._hex) / 10 ** 8;
     const vars = await tronService.CNRLottoContract.vars().call();
     this.totalWin = parseInt(vars.totalWin) / 10 ** 8;
     this.totalPlayed = parseInt(vars.totalPlayed) / 10 ** 8;
@@ -365,7 +367,7 @@ export default {
         this.accountAddress
       ).call();
 
-      this.yourBalance = parseInt(walletBalance.balance._hex/ 10 ** 8) ;
+      this.yourBalance = parseInt(walletBalance._hex/ 10 ** 8) ;
 
       Swal.fire({
         position: "top-end",
@@ -411,7 +413,7 @@ export default {
       const walletBalance = await tronService.CNRTokenContract.balanceOf(
         this.accountAddress
       ).call();
-      this.yourBalance = parseInt(walletBalance.balance._hex/ 10 ** 8) ;
+      this.yourBalance = parseInt(walletBalance._hex/ 10 ** 8) ;
 
       Swal.fire({
         position: "top-end",
