@@ -294,6 +294,7 @@ export default {
       this.totalPlayed = parseInt(vars.totalPlayed) / 10 ** 8;
 
       tronService.CNRLottoContract.Create().watch((err, event) => {
+        alert("Create event");
         if (err) {
           Swal.fire({
             position: "top-end",
@@ -304,6 +305,7 @@ export default {
           });
           return console.error('Error with "LogCreateJob" event:', err);
         }
+        if (!event) return;
         // if (
         //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
         // )
@@ -312,7 +314,6 @@ export default {
         // tronService.eventTransactions.add(`${event.name}${event.transaction}`); // add to set
 
         console.log(event);
-
         const { createTime, endTime } = event.result;
 
         this.createTime = dayjs(parseInt(createTime) * 1000).format(
@@ -331,6 +332,7 @@ export default {
       });
 
       tronService.CNRLottoContract.Play().watch(async (err, event) => {
+        alert("Play event");
         if (err) {
           Swal.fire({
             position: "top-end",
@@ -341,6 +343,7 @@ export default {
           });
           return console.error('Error with "Play" event:', err);
         }
+        if (!event) return;
         // if (
         //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
         // )
@@ -349,7 +352,6 @@ export default {
         // tronService.eventTransactions.add(`${event.name}${event.transaction}`);
 
         console.log(event);
-      
         const {
           player,
           currentReward,
@@ -405,6 +407,7 @@ export default {
       });
 
       tronService.CNRLottoContract.Win().watch(async (err, event) => {
+        alert("Win event");
         if (err) {
           Swal.fire({
             position: "top-end",
@@ -415,6 +418,8 @@ export default {
           });
           return console.error('Error with "Win" event:', err);
         }
+        if (!event) return;
+
         // if (
         //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
         // )
@@ -423,9 +428,7 @@ export default {
         // tronService.eventTransactions.add(`${event.name}${event.transaction}`);
 
         console.log(event);
-        
         const { totalWin, winner, amount, gameNumber, timeWin } = event.result;
-
         this.totalWin = totalWin / 10 ** 8;
         this.createTime = -1;
         this.endTime = -1;
