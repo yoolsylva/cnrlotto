@@ -286,14 +286,23 @@ export default {
     this.totalPlayed = parseInt(vars.totalPlayed) / 10 ** 8;
 
     tronService.CNRLottoContract.Create().watch((err, event) => {
-      if (err) return console.error('Error with "LogCreateJob" event:', err);
+      if (err){ 
+        Swal.fire({
+        position: "top-end",
+        icon: "error",
+        title: err,
+        showConfirmButton: false,
+        timer: 11500,
+      });
+        return console.error('Error with "LogCreateJob" event:', err)
+        }
       if (!event) return;
-      if (
-        tronService.eventTransactions.has(`${event.name}${event.transaction}`)
-      )
-        return; // check set exists event or not, prevent duplicate event
+      // if (
+      //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
+      // )
+      //   return; // check set exists event or not, prevent duplicate event
 
-      tronService.eventTransactions.add(`${event.name}${event.transaction}`); // add to set
+      // tronService.eventTransactions.add(`${event.name}${event.transaction}`); // add to set
 
       console.log(event);
       const { createTime, endTime } = event.result;
@@ -314,14 +323,22 @@ export default {
     });
 
     tronService.CNRLottoContract.Play().watch(async (err, event) => {
-      if (err) return console.error('Error with "Play" event:', err);
+      if (err){ 
+        Swal.fire({
+        position: "top-end",
+        icon: "error",
+        title: err,
+        showConfirmButton: false,
+        timer: 11500,
+      });
+        return console.error('Error with "Play" event:', err)}
       if (!event) return;
-      if (
-        tronService.eventTransactions.has(`${event.name}${event.transaction}`)
-      )
-        return;
+      // if (
+      //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
+      // )
+      //   return;
 
-      tronService.eventTransactions.add(`${event.name}${event.transaction}`);
+      // tronService.eventTransactions.add(`${event.name}${event.transaction}`);
 
       console.log(event);
       const {
@@ -379,14 +396,23 @@ export default {
     });
 
     tronService.CNRLottoContract.Win().watch(async (err, event) => {
-      if (err) return console.error('Error with "Win" event:', err);
+      if (err)  {
+         Swal.fire({
+        position: "top-end",
+        icon: "error",
+        title: err,
+        showConfirmButton: false,
+        timer: 11500,
+      });
+        return console.error('Error with "Win" event:', err)
+        }
       if (!event) return;
-      if (
-        tronService.eventTransactions.has(`${event.name}${event.transaction}`)
-      )
-        return;
+      // if (
+      //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
+      // )
+      //   return;
 
-      tronService.eventTransactions.add(`${event.name}${event.transaction}`);
+      // tronService.eventTransactions.add(`${event.name}${event.transaction}`);
 
       console.log(event);
       const { totalWin, winner, amount, gameNumber, timeWin } = event.result;
@@ -491,9 +517,9 @@ export default {
           this.accountAddress,
           tronService.CNRLottoAddress
         ).call();
-        console.log("allowance: ", allowance, parseInt(allowance));
+        console.log("allowance: ", allowance, parseInt(allowance._hex));
 
-        if (parseInt(allowance) < numberTickets * 10 ** 8) {
+        if (parseInt(allowance._hex) < numberTickets * 10 ** 8) {
           const res = await tronService.CNRTokenContract.balanceOf(
             this.accountAddress
           ).call();
