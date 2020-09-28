@@ -312,7 +312,7 @@ export default {
         // tronService.eventTransactions.add(`${event.name}${event.transaction}`); // add to set
 
         console.log(event);
-         alert('create event');
+
         const { createTime, endTime } = event.result;
 
         this.createTime = dayjs(parseInt(createTime) * 1000).format(
@@ -357,7 +357,6 @@ export default {
           bet,
           totalGames,
         } = event.result;
-        alert('play event ' + player);
 
         this.currentGameNumber = totalGames;
 
@@ -426,7 +425,7 @@ export default {
         console.log(event);
         
         const { totalWin, winner, amount, gameNumber, timeWin } = event.result;
-        alert('win event ' + amount);
+
         this.totalWin = totalWin / 10 ** 8;
         this.createTime = -1;
         this.endTime = -1;
