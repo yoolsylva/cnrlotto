@@ -184,6 +184,10 @@
       </div>
     </footer>
     <!-- Game Body Area End -->
+    <div>createEvent: {{ createEvent }}</div>
+    <div>playEvent: {{ playEvent }}</div>
+    <div>winEvent: {{ winEvent }}</div>
+    <div>error: {{ eventError }}</div>
   </div>
 </template>
 
@@ -214,6 +218,10 @@ export default {
       isEnteredJackpot: false,
       message: "",
       copied: false,
+      createEvent: "",
+      winEvent: "",
+      playEvent: "",
+      eventError: "",
     };
   },
   computed: {
@@ -294,7 +302,6 @@ export default {
       this.totalPlayed = parseInt(vars.totalPlayed) / 10 ** 8;
 
       tronService.CNRLottoContract.Create().watch((err, event) => {
-        alert("Create event");
         if (err) {
           Swal.fire({
             position: "top-end",
@@ -303,9 +310,13 @@ export default {
             showConfirmButton: false,
             timer: 11500,
           });
+          this.eventError = err.message;
           return console.error('Error with "LogCreateJob" event:', err);
         }
-        if (!event) return;
+        if (!event) {
+          this.eventError = "not found event create";
+          return;
+        }
         // if (
         //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
         // )
@@ -315,6 +326,7 @@ export default {
 
         console.log(event);
         const { createTime, endTime } = event.result;
+        this.createEvent = JSON.stringify(event.result);
 
         this.createTime = dayjs(parseInt(createTime) * 1000).format(
           "DD/MM/YYYY hh:mm:ss"
@@ -332,7 +344,6 @@ export default {
       });
 
       tronService.CNRLottoContract.Play().watch(async (err, event) => {
-        alert("Play event");
         if (err) {
           Swal.fire({
             position: "top-end",
@@ -341,9 +352,13 @@ export default {
             showConfirmButton: false,
             timer: 11500,
           });
+          this.eventError = err.message;
           return console.error('Error with "Play" event:', err);
         }
-        if (!event) return;
+        if (!event) {
+          this.eventError = "not found event play";
+          return;
+        }
         // if (
         //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
         // )
@@ -359,6 +374,7 @@ export default {
           bet,
           totalGames,
         } = event.result;
+        this.playEvent = JSON.stringify(event.result);
 
         this.currentGameNumber = totalGames;
 
@@ -416,9 +432,13 @@ export default {
             showConfirmButton: false,
             timer: 11500,
           });
+          this.eventError = err.message;
           return console.error('Error with "Win" event:', err);
         }
-        if (!event) return;
+        if (!event) {
+          this.eventError = "not found event win";
+          return;
+        }
 
         // if (
         //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
@@ -429,6 +449,8 @@ export default {
 
         console.log(event);
         const { totalWin, winner, amount, gameNumber, timeWin } = event.result;
+        this.winEvent = JSON.stringify(event.result);
+
         this.totalWin = totalWin / 10 ** 8;
         this.createTime = -1;
         this.endTime = -1;
