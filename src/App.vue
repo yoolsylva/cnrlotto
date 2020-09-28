@@ -254,7 +254,7 @@ export default {
 
         playerStats.push({
           address: shortenAddress(
-            tronService.tronweb.address.fromHex(filterPlayers[i])
+            tronService.tronWeb.address.fromHex(filterPlayers[i])
           ),
           lastBuyTime: dayjs(parseInt(playerStat.lastBuyTime) * 1000).format(
             "DD/MM/YYYY hh:mm:ss"
@@ -263,7 +263,7 @@ export default {
         });
 
         if (
-          tronService.tronweb.address.fromHex(filterPlayers[i]) ===
+          tronService.tronWeb.address.fromHex(filterPlayers[i]) ===
           this.accountAddress
         )
           this.isEnteredJackpot = true;
@@ -378,7 +378,7 @@ export default {
 
         this.currentGameNumber = totalGames;
 
-        if (tronService.tronweb.address.fromHex(player) === this.accountAddress)
+        if (tronService.tronWeb.address.fromHex(player) === this.accountAddress)
           this.isEnteredJackpot = true;
 
         const playerStat = await tronService.CNRLottoContract.getPlayerStat(
@@ -387,7 +387,7 @@ export default {
           player
         ).call();
         const obj = {
-          address: shortenAddress(tronService.tronweb.address.fromHex(player)),
+          address: shortenAddress(tronService.tronWeb.address.fromHex(player)),
           lastBuyTime: dayjs(parseInt(playerStat.lastBuyTime) * 1000).format(
             "DD/MM/YYYY hh:mm:ss"
           ),
@@ -463,7 +463,7 @@ export default {
           {
             gameNumber: gameNumber,
             address: shortenAddress(
-              tronService.tronweb.address.fromHex(winner)
+              tronService.tronWeb.address.fromHex(winner)
             ),
             totalWin: parseInt(amount) / 10 ** 8,
             timeWin: dayjs(parseInt(timeWin) * 1000).format(
@@ -482,7 +482,7 @@ export default {
           position: "top-end",
           icon: "success",
           title: `Winner ${shortenAddress(
-            tronService.tronweb.address.fromHex(winner)
+            tronService.tronWeb.address.fromHex(winner)
           )} win Jackpot ${amount / 10 ** 8} CNR!`,
           showConfirmButton: false,
           timer: 10000,
@@ -503,7 +503,7 @@ export default {
           const winnerInfo = {
             gameNumber: it.result.gameNumber,
             address: shortenAddress(
-              tronService.tronweb.address.fromHex(it.result.winner)
+              tronService.tronWeb.address.fromHex(it.result.winner)
             ),
             totalWin: parseInt(it.result.amount) / 10 ** 8,
             timeWin: dayjs(parseInt(it.result.timeWin) * 1000).format(
@@ -599,7 +599,7 @@ export default {
       const cookies = new Cookies();
       const cookieref = cookies.get("ref");
 
-      if (tronService.tronweb.isAddress(cookieref)) {
+      if (tronService.tronWeb.isAddress(cookieref)) {
         this.ref = cookieref;
       } else {
         this.ref = this.accountAddress;
@@ -612,7 +612,7 @@ export default {
           ref = href.substring(n + 4, n + 4 + 34);
         }
 
-        if (tronService.tronweb.isAddress(ref)) {
+        if (tronService.tronWeb.isAddress(ref)) {
           cookies.set("ref", ref, {
             path: "/",
             expires: new Date(Date.now() + 31536000),
