@@ -52,7 +52,7 @@ class TronService {
           clearInterval(this.tick);
           resolve();
         }
-      })
+      }, 3000)
     })
   }
 }
