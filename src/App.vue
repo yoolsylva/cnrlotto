@@ -423,7 +423,6 @@ export default {
       });
 
       tronService.CNRLottoContract.Win().watch(async (err, event) => {
-        alert("Win event");
         if (err) {
           Swal.fire({
             position: "top-end",
