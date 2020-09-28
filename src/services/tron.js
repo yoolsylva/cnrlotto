@@ -2,6 +2,8 @@ import store from '../store';
 import TronGrid from 'trongrid';
 import TronWeb from 'tronweb';
 
+const TRONGRID_API = "https://api.trongrid.io";
+
 class TronService {
   instance = undefined;
   ready = false;
@@ -12,8 +14,6 @@ class TronService {
   CNRTokenContract = undefined;
 
   eventTransactions = undefined;
-
-  TRONGRID_API = "https://api.trongrid.io";
 
   // Shasta
   // CNRLottoAddress = "TUwuvejicwVN31XTKE12mKzpjNULo3aMsc"
@@ -41,7 +41,7 @@ class TronService {
       this.tick = setInterval(async () => {
         if ((!!window.tronWeb) && (window.tronWeb.ready)) {
           this.tronWeb = new TronWeb(TRONGRID_API,TRONGRID_API,TRONGRID_API);
-          this.tronGrid = new TronGrid(window.tronWeb);
+          this.tronGrid = new TronGrid(this.tronWeb);
           this.address = window.tronWeb.defaultAddress.base58;
 
           this.CNRLottoContract = await window.tronWeb.contract().at(this.CNRLottoAddress);
