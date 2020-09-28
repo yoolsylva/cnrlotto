@@ -304,7 +304,6 @@ export default {
           });
           return console.error('Error with "LogCreateJob" event:', err);
         }
-        if (!event) return;
         // if (
         //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
         // )
@@ -341,7 +340,6 @@ export default {
           });
           return console.error('Error with "Play" event:', err);
         }
-        if (!event) return;
         // if (
         //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
         // )
@@ -415,7 +413,6 @@ export default {
           });
           return console.error('Error with "Win" event:', err);
         }
-        if (!event) return;
         // if (
         //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
         // )
