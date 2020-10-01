@@ -183,11 +183,6 @@
         </ul>
       </div>
     </footer>
-    <!-- Game Body Area End -->
-    <div>createEvent: {{ createEvent }}</div>
-    <div>playEvent: {{ playEvent }}</div>
-    <div>winEvent: {{ winEvent }}</div>
-    <div>error: {{ eventError }}</div>
   </div>
 </template>
 
@@ -209,6 +204,7 @@ export default {
       currentReward: 0,
       totalWin: 0,
       pastWinners: [],
+      pastCreate: [],
       totalPlayed: 0,
       totalTicket24hour: 0,
       yourBalance: 0,
@@ -218,10 +214,7 @@ export default {
       isEnteredJackpot: false,
       message: "",
       copied: false,
-      createEvent: "",
-      winEvent: "",
-      playEvent: "",
-      eventError: "",
+      intervalHandle: null,
     };
   },
   computed: {
@@ -237,38 +230,9 @@ export default {
       const tronService = TronService.getInstance();
       await tronService.init();
 
+      //  this.intervalHandle = setInterval(this.tick1, 1000);
+
       this.message = "https://cryptoworldgames.com/?ref=" + tronService.address;
-
-      const currentGameNumber = await tronService.CNRLottoContract.getTotalGames().call();
-      this.currentGameNumber = parseInt(currentGameNumber);
-
-      const players = await tronService.CNRLottoContract.getPlayers().call();
-      const filterPlayers = Array.from(new Set(players));
-
-      const playerStats = [];
-      for (let i = 0; i < filterPlayers.length; i++) {
-        const playerStat = await tronService.CNRLottoContract.getPlayerStat(
-          this.currentGameNumber,
-          filterPlayers[i]
-        ).call();
-
-        playerStats.push({
-          address: shortenAddress(
-            tronService.tronWeb.address.fromHex(filterPlayers[i])
-          ),
-          lastBuyTime: dayjs(parseInt(playerStat.lastBuyTime) * 1000).format(
-            "DD/MM/YYYY hh:mm:ss"
-          ),
-          numberTicket: parseInt(playerStat.numberTicket),
-        });
-
-        if (
-          tronService.tronWeb.address.fromHex(filterPlayers[i]) ===
-          this.accountAddress
-        )
-          this.isEnteredJackpot = true;
-      }
-      this.playerStats = playerStats;
 
       const createTime = await tronService.CNRLottoContract.getCreateTime().call();
       const endTime = await tronService.CNRLottoContract.getEndTime().call();
@@ -287,249 +251,179 @@ export default {
         }, 1000);
       }
 
-      const balance = await tronService.CNRTokenContract.balanceOf(
-        tronService.CNRLottoAddress
-      ).call();
-      const walletBalance = await tronService.CNRTokenContract.balanceOf(
-        this.accountAddress
-      ).call();
+      this.intervalHandle = setInterval(async () => {
+        const tronService = TronService.getInstance();
+        await tronService.init();
 
-      console.log("balance is: ", balance);
-      this.yourBalance = parseInt(walletBalance._hex / 10 ** 8);
-      this.currentReward = parseInt(balance._hex) / 10 ** 8;
-      const vars = await tronService.CNRLottoContract.vars().call();
-      this.totalWin = parseInt(vars.totalWin) / 10 ** 8;
-      this.totalPlayed = parseInt(vars.totalPlayed) / 10 ** 8;
+        const currentGameNumber = await tronService.CNRLottoContract.getTotalGames().call();
+        this.currentGameNumber = parseInt(currentGameNumber);
 
-      tronService.CNRLottoContract.Create().watch((err, event) => {
-        if (err) {
-          Swal.fire({
-            position: "top-end",
-            icon: "error",
-            title: err,
-            showConfirmButton: false,
-            timer: 11500,
+        const players = await tronService.CNRLottoContract.getPlayers().call();
+
+        const filterPlayers = Array.from(new Set(players));
+
+        const playerStats = [];
+        for (let i = 0; i < filterPlayers.length; i++) {
+          const playerStat = await tronService.CNRLottoContract.getPlayerStat(
+            this.currentGameNumber,
+            filterPlayers[i]
+          ).call();
+
+          playerStats.push({
+            address: shortenAddress(
+              tronService.tronWeb.address.fromHex(filterPlayers[i])
+            ),
+            lastBuyTime: dayjs(parseInt(playerStat.lastBuyTime) * 1000).format(
+              "DD/MM/YYYY hh:mm:ss"
+            ),
+            numberTicket: parseInt(playerStat.numberTicket),
           });
-          this.eventError = err.message;
-          return console.error('Error with "LogCreateJob" event:', err);
+
+          if (
+            tronService.tronWeb.address.fromHex(filterPlayers[i]) ===
+            this.accountAddress
+          )
+            this.isEnteredJackpot = true;
         }
-        if (!event) {
-          this.eventError = "not found event create";
-          return;
-        }
-        // if (
-        //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
-        // )
-        //   return; // check set exists event or not, prevent duplicate event
+        this.playerStats = playerStats;
 
-        // tronService.eventTransactions.add(`${event.name}${event.transaction}`); // add to set
-
-        console.log(event);
-        const { createTime, endTime } = event.result;
-        this.createEvent = JSON.stringify(event.result);
-
-        this.createTime = dayjs(parseInt(createTime) * 1000).format(
-          "DD/MM/YYYY hh:mm:ss"
-        );
-        this.endTime = dayjs(parseInt(endTime) * 1000).format(
-          "DD/MM/YYYY hh:mm:ss"
-        );
-
-        if (this.tick) clearInterval(this.tick);
-        this.tick = setInterval(() => {
-          const seconds = parseInt(endTime) - parseInt(Date.now() / 1000);
-          this.countdown = secondsToDhms(seconds);
-          if (seconds <= 0) clearInterval(this.tick);
-        }, 1000);
-      });
-
-      tronService.CNRLottoContract.Play().watch(async (err, event) => {
-        if (err) {
-          Swal.fire({
-            position: "top-end",
-            icon: "error",
-            title: err,
-            showConfirmButton: false,
-            timer: 11500,
-          });
-          this.eventError = err.message;
-          return console.error('Error with "Play" event:', err);
-        }
-        if (!event) {
-          this.eventError = "not found event play";
-          return;
-        }
-        // if (
-        //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
-        // )
-        //   return;
-
-        // tronService.eventTransactions.add(`${event.name}${event.transaction}`);
-
-        console.log(event);
-        const {
-          player,
-          currentReward,
-          totalPlayed,
-          bet,
-          totalGames,
-        } = event.result;
-        this.playEvent = JSON.stringify(event.result);
-
-        this.currentGameNumber = totalGames;
-
-        if (tronService.tronWeb.address.fromHex(player) === this.accountAddress)
-          this.isEnteredJackpot = true;
-
-        const playerStat = await tronService.CNRLottoContract.getPlayerStat(
-          // this.currentGameNumber,
-          totalGames,
-          player
+        const balance = await tronService.CNRTokenContract.balanceOf(
+          tronService.CNRLottoAddress
         ).call();
-        const obj = {
-          address: shortenAddress(tronService.tronWeb.address.fromHex(player)),
-          lastBuyTime: dayjs(parseInt(playerStat.lastBuyTime) * 1000).format(
-            "DD/MM/YYYY hh:mm:ss"
-          ),
-          numberTicket: parseInt(playerStat.numberTicket),
-        };
-
-        const index = this.playerStats.findIndex(
-          (it) => it.address === obj.address
-        );
-        if (index < 0) {
-          this.playerStats = [...this.playerStats, obj];
-        } else {
-          this.playerStats.splice(index, 1, obj);
-        }
-
-        this.currentReward = parseInt(currentReward) / 10 ** 8;
-        this.totalPlayed = parseInt(totalPlayed) / 10 ** 8;
-        this.totalTicket24hour += parseInt(bet) / 10 ** 8;
-
         const walletBalance = await tronService.CNRTokenContract.balanceOf(
           this.accountAddress
         ).call();
 
+        // console.log("balance is: ", balance);
         this.yourBalance = parseInt(walletBalance._hex / 10 ** 8);
+        this.currentReward = parseInt(balance._hex) / 10 ** 8;
+        const vars = await tronService.CNRLottoContract.vars().call();
+        this.totalWin = parseInt(vars.totalWin) / 10 ** 8;
+        this.totalPlayed = parseInt(vars.totalPlayed) / 10 ** 8;
 
-        Swal.fire({
-          position: "top-end",
-          icon: "success",
-          title: `${obj.address} buy ${bet / 10 ** 8} ticket!`,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      });
-
-      tronService.CNRLottoContract.Win().watch(async (err, event) => {
-        if (err) {
-          Swal.fire({
-            position: "top-end",
-            icon: "error",
-            title: err,
-            showConfirmButton: false,
-            timer: 11500,
-          });
-          this.eventError = err.message;
-          return console.error('Error with "Win" event:', err);
-        }
-        if (!event) {
-          this.eventError = "not found event win";
-          return;
-        }
-
-        // if (
-        //   tronService.eventTransactions.has(`${event.name}${event.transaction}`)
-        // )
-        //   return;
-
-        // tronService.eventTransactions.add(`${event.name}${event.transaction}`);
-
-        console.log(event);
-        const { totalWin, winner, amount, gameNumber, timeWin } = event.result;
-        this.winEvent = JSON.stringify(event.result);
-
-        this.totalWin = totalWin / 10 ** 8;
-        this.createTime = -1;
-        this.endTime = -1;
-        this.playerStats = [];
-        this.countdown = -1;
-        this.currentReward = 0;
-        this.isEnteredJackpot = false;
-
-        this.pastWinners = [
+        const pastEventWins = await tronService.tronGrid.contract.getEvents(
+          tronService.CNRLottoAddress,
           {
-            gameNumber: gameNumber,
-            address: shortenAddress(
-              tronService.tronWeb.address.fromHex(winner)
-            ),
-            totalWin: parseInt(amount) / 10 ** 8,
-            timeWin: dayjs(parseInt(timeWin) * 1000).format(
-              "DD/MM/YYYY hh:mm:ss"
-            ),
-          },
-          ...this.pastWinners,
-        ];
+            event_name: "Win",
+            min_timestamp: Date.now() - 24 * 60 * 60* 30 * 1000, // get event win in last month
+            limit: 100
+          }
+        );
 
-        const walletBalance = await tronService.CNRTokenContract.balanceOf(
-          this.accountAddress
-        ).call();
-        this.yourBalance = parseInt(walletBalance._hex / 10 ** 8);
+        if (
+          this.pastWinners.length > 0 &&
+          pastEventWins.data.length > 0 &&
+          pastEventWins.data[pastEventWins.data.length - 1].result
+            .gameNumber !== this.pastWinners[0].gameNumber
+        ) {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: `Winner ${shortenAddress(
+              tronService.tronWeb.address.fromHex(
+                pastEventWins.data[pastEventWins.data.length - 1].result.winner
+              )
+            )} win Jackpot ${
+              pastEventWins.data[pastEventWins.data.length - 1].result.amount /
+              10 ** 8
+            } CNR!`,
+            showConfirmButton: false,
+            timer: 10000,
+          });
+          console.log("set countdown to 1 when getWinner");
+          this.createTime = -1;
+          this.endTime = -1;
+          this.playerStats = [];
+          this.countdown = -1;
+          this.currentReward = 0;
+          this.isEnteredJackpot = false;
+        }
 
-        Swal.fire({
-          position: "top-end",
-          icon: "success",
-          title: `Winner ${shortenAddress(
-            tronService.tronWeb.address.fromHex(winner)
-          )} win Jackpot ${amount / 10 ** 8} CNR!`,
-          showConfirmButton: false,
-          timer: 10000,
+        this.pastWinners = pastEventWins.data
+          .map((it) => {
+            var winnerInfo = {
+              gameNumber: it.result.gameNumber,
+              address: shortenAddress(
+                tronService.tronWeb.address.fromHex(it.result.winner)
+              ),
+              totalWin: parseInt(it.result.amount) / 10 ** 8,
+              timeWin: dayjs(parseInt(it.result.timeWin) * 1000).format(
+                "DD/MM/YYYY hh:mm:ss"
+              ),
+            };
+            return winnerInfo;
+          })
+          .reverse();
+
+        const pastEventCreates = await tronService.tronGrid.contract.getEvents(
+          tronService.CNRLottoAddress,
+          {
+            event_name: "Create",
+            min_timestamp: Date.now() - 24 * 60 * 60* 30 * 1000, // get event win in last month
+            limit: 100
+          }
+        );
+
+        if (pastEventCreates.data.length > 0 && this.pastCreate.length === 0) {
+          this.pastCreate = pastEventCreates.data;
+        } else {
+          if (
+            pastEventCreates.data.length > 0 &&
+            this.pastCreate.length > 0 &&
+            pastEventCreates.data[pastEventCreates.data.length - 1].result
+              .gameNumber !==
+              this.pastCreate[this.pastCreate.length - 1].result.gameNumber
+          ) {
+            console.log("pastEventCreats : ", pastEventCreates);
+            console.log("this.pastCreate : ", this.pastCreate);
+            this.createTime = dayjs(
+              parseInt(
+                pastEventCreates.data[pastEventCreates.data.length - 1].result
+                  .createTime
+              ) * 1000
+            ).format("DD/MM/YYYY hh:mm:ss");
+            this.endTime = dayjs(
+              parseInt(
+                pastEventCreates.data[pastEventCreates.data.length - 1].result
+                  .endTime
+              ) * 1000
+            ).format("DD/MM/YYYY hh:mm:ss");
+
+            if (this.tick) clearInterval(this.tick);
+            this.tick = setInterval(() => {
+              const seconds =
+                parseInt(
+                  pastEventCreates.data[pastEventCreates.data.length - 1].result
+                    .endTime
+                ) - parseInt(Date.now() / 1000);
+              this.countdown = secondsToDhms(seconds);
+              if (seconds <= 0) clearInterval(this.tick);
+            }, 1000);
+
+            this.pastCreate = pastEventCreates.data;
+          }
+        }
+        // this.pastCreate = pastEventCreates.data;
+        // console.log("pastEventCreats : ", pastEventCreates);
+
+        const pastEventPlays = await tronService.tronGrid.contract.getEvents(
+          tronService.CNRLottoAddress,
+          {
+            event_name: "Play",
+            min_timestamp: Date.now() - 24 * 60 * 60 * 1000, // get event play in last 24 hour
+            limit: 100
+          }
+        );
+
+        let totalTicket24hour = 0;
+        pastEventPlays.data.forEach((it) => {
+          totalTicket24hour += parseInt(it.result.bet) / 10 ** 8;
         });
-      });
+        this.totalTicket24hour = totalTicket24hour;
 
-      const pastEventWins = await tronService.tronGrid.contract.getEvents(
-        tronService.CNRLottoAddress,
-        {
-          event_name: "Win",
-          min_timestamp: Date.now() - 24 * 60 * 60 * 30 * 1000, // get event win in last month
-        }
-      );
-      console.log("pastEventWins", pastEventWins);
-
-      this.pastWinners = pastEventWins.data
-        .map((it) => {
-          const winnerInfo = {
-            gameNumber: it.result.gameNumber,
-            address: shortenAddress(
-              tronService.tronWeb.address.fromHex(it.result.winner)
-            ),
-            totalWin: parseInt(it.result.amount) / 10 ** 8,
-            timeWin: dayjs(parseInt(it.result.timeWin) * 1000).format(
-              "DD/MM/YYYY hh:mm:ss"
-            ),
-          };
-          return winnerInfo;
-        })
-        .reverse();
-
-      console.log("pastWinner 375 is: ", this.pastWinners);
-      const pastEventPlays = await tronService.tronGrid.contract.getEvents(
-        tronService.CNRLottoAddress,
-        {
-          event_name: "Play",
-          min_timestamp: Date.now() - 24 * 60 * 60 * 1000, // get event play in last 24 hour
-        }
-      );
-
-      console.log("pastEventPlays", pastEventPlays);
-      let totalTicket24hour = 0;
-      pastEventPlays.data.forEach((it) => {
-        totalTicket24hour += parseInt(it.result.bet) / 10 ** 8;
-      });
-      this.totalTicket24hour = totalTicket24hour;
-
+      }, 1000);
       this.getRef();
+
     } catch (e) {
       Swal.fire({
         position: "top-end",
@@ -540,8 +434,10 @@ export default {
       });
     }
   },
+
   destroyed() {
     clearInterval(this.tick);
+    clearInterval(this.intervalHandle);
   },
   methods: {
     async play(numberTickets) {
@@ -562,7 +458,7 @@ export default {
           this.accountAddress,
           tronService.CNRLottoAddress
         ).call();
-        console.log("allowance: ", allowance, parseInt(allowance._hex));
+        console.log("allowance: ", allowance, parseInt(allowance));
 
         if (parseInt(allowance._hex) < numberTickets * 10 ** 8) {
           const res = await tronService.CNRTokenContract.balanceOf(
@@ -575,9 +471,20 @@ export default {
           ).send();
         }
 
-        await tronService.CNRLottoContract.play(numberTickets, this.ref).send({
-          shouldPollResponse: true,
-        });
+        tronService.CNRLottoContract.play(numberTickets, this.ref)
+          .send({})
+          .then(async (res) => {
+            console.log("res in play is: ", res);
+            Swal.fire({
+              position: "top-end",
+              icon: "success",
+              title: `${shortenAddress(
+                this.accountAddress
+              )} buy ${numberTickets} ticket!`,
+              showConfirmButton: false,
+              timer: 3000,
+            });
+          });
       } catch (e) {
         console.log(e);
         Swal.fire({

@@ -1,8 +1,8 @@
 import store from '../store';
 import TronGrid from 'trongrid';
-import TronWeb from 'tronweb';
+// import TronWeb from 'tronweb';
 
-const TRONGRID_API = "https://api.trongrid.io";
+// const TRONGRID_API = "https://api.trongrid.io";
 
 class TronService {
   instance = undefined;
@@ -40,7 +40,7 @@ class TronService {
 
       this.tick = setInterval(async () => {
         if ((!!window.tronWeb) && (window.tronWeb.ready)) {
-          this.tronWeb = new TronWeb(TRONGRID_API,TRONGRID_API,TRONGRID_API);
+          this.tronWeb = window.tronWeb
           this.tronGrid = new TronGrid(this.tronWeb);
           this.address = window.tronWeb.defaultAddress.base58;
 
@@ -55,7 +55,7 @@ class TronService {
           clearInterval(this.tick);
           resolve();
         }
-      }, 3000)
+      }, 500)
     })
   }
 }
